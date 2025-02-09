@@ -194,6 +194,6 @@ fn panic_does_not_fit(size: usize, nbytes: usize) -> ! {
 /// But due to min rust is 1.39 and it is only stabilized
 /// in 1.47, we cannot use it.
 #[inline]
-fn offset_from(dst: *const u8, original: *const u8) -> usize {
+fn offset_from<T>(dst: *const T, original: *const T) -> usize {
     dst as usize - original as usize
 }

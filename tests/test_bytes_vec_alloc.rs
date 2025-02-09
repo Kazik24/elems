@@ -87,21 +87,21 @@ unsafe impl GlobalAlloc for Ledger {
 
 #[test]
 fn test_bytes_advance() {
-    let mut bytes = Bytes::from(vec![10, 20, 30]);
+    let mut bytes = Bytes::<u8>::from(vec![10, 20, 30]);
     bytes.advance(1);
     drop(bytes);
 }
 
 #[test]
 fn test_bytes_truncate() {
-    let mut bytes = Bytes::from(vec![10, 20, 30]);
+    let mut bytes = Bytes::<u8>::from(vec![10, 20, 30]);
     bytes.truncate(2);
     drop(bytes);
 }
 
 #[test]
 fn test_bytes_truncate_and_advance() {
-    let mut bytes = Bytes::from(vec![10, 20, 30]);
+    let mut bytes = Bytes::<u8>::from(vec![10, 20, 30]);
     bytes.truncate(2);
     bytes.advance(1);
     drop(bytes);

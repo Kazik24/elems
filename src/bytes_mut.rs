@@ -1,4 +1,6 @@
+use core::alloc::Layout;
 use core::iter::FromIterator;
+use core::marker::PhantomData;
 use core::mem::{self, ManuallyDrop, MaybeUninit};
 use core::ops::{Deref, DerefMut};
 use core::ptr::{self, NonNull};
@@ -13,7 +15,7 @@ use alloc::{
 };
 
 use crate::buf::{IntoIter, UninitSlice};
-use crate::bytes::Vtable;
+use crate::bytes::{Pod, RawBytes, Vtable};
 #[allow(unused)]
 use crate::loom::sync::atomic::AtomicMut;
 use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
@@ -58,11 +60,37 @@ use crate::{offset_from, Buf, BufMut, Bytes, TryGetError};
 /// assert_eq!(&a[..], b"hello");
 /// assert_eq!(&b[..], b"hello");
 /// ```
-pub struct BytesMut {
+pub struct BytesMut<T: Pod = u8> {
+    ptr: NonNull<T>,
+    len: usize,
+    cap: usize,
+    data: *mut Shared<T>,
+}
+
+pub(crate) struct RawBytesMut {
     ptr: NonNull<u8>,
     len: usize,
     cap: usize,
-    data: *mut Shared,
+    data: *mut Shared<u8>,
+}
+impl RawBytesMut {
+    pub fn erase<T: Pod>(bytes: BytesMut<T>) -> RawBytesMut {
+        let bytes = ManuallyDrop::new(bytes);
+        RawBytesMut {
+            ptr: bytes.ptr.cast::<u8>(),
+            len: bytes.len,
+            cap: bytes.cap,
+            data: bytes.data.cast(),
+        }
+    }
+    pub const fn recover<T: Pod>(self) -> BytesMut<T> {
+        BytesMut {
+            ptr: self.ptr.cast(),
+            len: self.len,
+            cap: self.cap,
+            data: self.data.cast(),
+        }
+    }
 }
 
 // Thread-safe reference-counted container for the shared storage. This mostly
@@ -74,8 +102,8 @@ pub struct BytesMut {
 // some of the logic around setting `Inner::arc` and other ways the `arc` field
 // is used. Using `Arc` ended up requiring a number of funky transmutes and
 // other shenanigans to make it work.
-struct Shared {
-    vec: Vec<u8>,
+struct Shared<T: Pod> {
+    vec: Vec<T>,
     original_capacity_repr: usize,
     ref_count: AtomicUsize,
 }
@@ -84,7 +112,7 @@ struct Shared {
 // This is a necessary invariant since we depend on allocating `Shared` a
 // shared object to implicitly carry the `KIND_ARC` flag in its pointer.
 // This flag is set when the LSB is 0.
-const _: [(); 0 - mem::align_of::<Shared>() % 2] = []; // Assert that the alignment of `Shared` is divisible by 2.
+const _: [(); 0 - mem::align_of::<Shared<u8>>() % 2] = []; // Assert that the alignment of `Shared` is divisible by 2.
 
 // Buffer storage strategy flags.
 const KIND_ARC: usize = 0b0;
@@ -121,7 +149,7 @@ const PTR_WIDTH: usize = 32;
  *
  */
 
-impl BytesMut {
+impl<T: Pod> BytesMut<T> {
     /// Creates a new `BytesMut` with the specified capacity.
     ///
     /// The returned `BytesMut` will be able to hold at least `capacity` bytes
@@ -145,7 +173,7 @@ impl BytesMut {
     /// assert_eq!(&bytes[..], b"hello world");
     /// ```
     #[inline]
-    pub fn with_capacity(capacity: usize) -> BytesMut {
+    pub fn with_capacity(capacity: usize) -> Self {
         BytesMut::from_vec(Vec::with_capacity(capacity))
     }
 
@@ -169,7 +197,7 @@ impl BytesMut {
     /// assert_eq!(&b"xy"[..], &bytes[..]);
     /// ```
     #[inline]
-    pub fn new() -> BytesMut {
+    pub fn new() -> Self {
         BytesMut::with_capacity(0)
     }
 
@@ -243,14 +271,14 @@ impl BytesMut {
     /// th.join().unwrap();
     /// ```
     #[inline]
-    pub fn freeze(self) -> Bytes {
+    pub fn freeze(self) -> Bytes<T> {
         let bytes = ManuallyDrop::new(self);
         if bytes.kind() == KIND_VEC {
             // Just re-use `Bytes` internal Vec vtable
             unsafe {
                 let off = bytes.get_vec_pos();
                 let vec = rebuild_vec(bytes.ptr.as_ptr(), bytes.len, bytes.cap, off);
-                let mut b: Bytes = vec.into();
+                let mut b: Bytes<T> = vec.into();
                 b.advance(off);
                 b
             }
@@ -260,7 +288,7 @@ impl BytesMut {
             let ptr = bytes.ptr.as_ptr();
             let len = bytes.len;
             let data = AtomicPtr::new(bytes.data.cast());
-            unsafe { Bytes::with_vtable(ptr, len, data, &SHARED_VTABLE) }
+            unsafe { Bytes::with_vtable(ptr, len, data, &VTablesMut::<T>::SHARED_VTABLE) }
         }
     }
 
@@ -284,8 +312,8 @@ impl BytesMut {
     /// assert_eq!(zeros.len(), 42);
     /// zeros.into_iter().for_each(|x| assert_eq!(x, 0));
     /// ```
-    pub fn zeroed(len: usize) -> BytesMut {
-        BytesMut::from_vec(vec![0; len])
+    pub fn zeroed(len: usize) -> Self {
+        BytesMut::from_vec(vec![T::default(); len])
     }
 
     /// Splits the bytes into two at the given index.
@@ -317,7 +345,7 @@ impl BytesMut {
     ///
     /// Panics if `at > capacity`.
     #[must_use = "consider BytesMut::truncate if you don't need the other half"]
-    pub fn split_off(&mut self, at: usize) -> BytesMut {
+    pub fn split_off(&mut self, at: usize) -> Self {
         assert!(
             at <= self.capacity(),
             "split_off out of bounds: {:?} <= {:?}",
@@ -360,7 +388,7 @@ impl BytesMut {
     /// assert_eq!(other, b"hello world"[..]);
     /// ```
     #[must_use = "consider BytesMut::clear if you don't need the other half"]
-    pub fn split(&mut self) -> BytesMut {
+    pub fn split(&mut self) -> Self {
         let len = self.len();
         self.split_to(len)
     }
@@ -392,7 +420,7 @@ impl BytesMut {
     ///
     /// Panics if `at > len`.
     #[must_use = "consider BytesMut::advance if you don't need the other half"]
-    pub fn split_to(&mut self, at: usize) -> BytesMut {
+    pub fn split_to(&mut self, at: usize) -> Self {
         assert!(
             at <= self.len(),
             "split_to out of bounds: {:?} <= {:?}",
@@ -670,7 +698,7 @@ impl BytesMut {
         }
 
         debug_assert_eq!(kind, KIND_ARC);
-        let shared: *mut Shared = self.data;
+        let shared: *mut Shared<T> = self.data;
 
         // Reserving involves abandoning the currently shared buffer and
         // allocating a new vector with the requested capacity.
@@ -860,7 +888,7 @@ impl BytesMut {
     /// assert_eq!(b"aaabbbcccddd", &buf[..]);
     /// ```
     #[inline]
-    pub fn extend_from_slice(&mut self, extend: &[u8]) {
+    pub fn extend_from_slice(&mut self, extend: &[T]) {
         let cnt = extend.len();
         self.reserve(cnt);
 
@@ -901,7 +929,7 @@ impl BytesMut {
     /// buf.unsplit(split);
     /// assert_eq!(b"aaabbbcccddd", &buf[..]);
     /// ```
-    pub fn unsplit(&mut self, other: BytesMut) {
+    pub fn unsplit(&mut self, other: Self) {
         if self.is_empty() {
             *self = other;
             return;
@@ -921,7 +949,7 @@ impl BytesMut {
     // internal change could make a simple pattern (`BytesMut::from(vec)`)
     // suddenly a lot more expensive.
     #[inline]
-    pub(crate) fn from_vec(vec: Vec<u8>) -> BytesMut {
+    pub(crate) fn from_vec(vec: Vec<T>) -> Self {
         let mut vec = ManuallyDrop::new(vec);
         let ptr = vptr(vec.as_mut_ptr());
         let len = vec.len();
@@ -930,7 +958,7 @@ impl BytesMut {
         let original_capacity_repr = original_capacity_to_repr(cap);
         let data = (original_capacity_repr << ORIGINAL_CAPACITY_OFFSET) | KIND_VEC;
 
-        BytesMut {
+        Self {
             ptr,
             len,
             cap,
@@ -939,12 +967,12 @@ impl BytesMut {
     }
 
     #[inline]
-    fn as_slice(&self) -> &[u8] {
+    fn as_slice(&self) -> &[T] {
         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len) }
     }
 
     #[inline]
-    fn as_slice_mut(&mut self) -> &mut [u8] {
+    fn as_slice_mut(&mut self) -> &mut [T] {
         unsafe { slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len) }
     }
 
@@ -990,7 +1018,7 @@ impl BytesMut {
         self.cap -= count;
     }
 
-    fn try_unsplit(&mut self, other: BytesMut) -> Result<(), BytesMut> {
+    fn try_unsplit(&mut self, other: Self) -> Result<(), Self> {
         if other.capacity() == 0 {
             return Ok(());
         }
@@ -1055,7 +1083,7 @@ impl BytesMut {
     /// be sure the returned value to the user doesn't allow
     /// two views into the same range.
     #[inline]
-    unsafe fn shallow_clone(&mut self) -> BytesMut {
+    unsafe fn shallow_clone(&mut self) -> Self {
         if self.kind() == KIND_ARC {
             increment_shared(self.data);
             ptr::read(self)
@@ -1118,9 +1146,21 @@ impl BytesMut {
             slice::from_raw_parts_mut(ptr.cast(), len)
         }
     }
+    #[inline]
+    unsafe fn advance_mut(&mut self, cnt: usize) {
+        let remaining = self.cap - self.len();
+        if cnt > remaining {
+            super::panic_advance(&TryGetError {
+                requested: cnt,
+                available: remaining,
+            });
+        }
+        // Addition won't overflow since it is at most `self.cap`.
+        self.len = self.len() + cnt;
+    }
 }
 
-impl Drop for BytesMut {
+impl<T: Pod> Drop for BytesMut<T> {
     fn drop(&mut self) {
         let kind = self.kind();
 
@@ -1228,38 +1268,38 @@ unsafe impl BufMut for BytesMut {
     }
 }
 
-impl AsRef<[u8]> for BytesMut {
+impl<T: Pod> AsRef<[T]> for BytesMut<T> {
     #[inline]
-    fn as_ref(&self) -> &[u8] {
+    fn as_ref(&self) -> &[T] {
         self.as_slice()
     }
 }
 
-impl Deref for BytesMut {
-    type Target = [u8];
+impl<T: Pod> Deref for BytesMut<T> {
+    type Target = [T];
 
     #[inline]
-    fn deref(&self) -> &[u8] {
+    fn deref(&self) -> &[T] {
         self.as_ref()
     }
 }
 
-impl AsMut<[u8]> for BytesMut {
+impl<T: Pod> AsMut<[T]> for BytesMut<T> {
     #[inline]
-    fn as_mut(&mut self) -> &mut [u8] {
+    fn as_mut(&mut self) -> &mut [T] {
         self.as_slice_mut()
     }
 }
 
-impl DerefMut for BytesMut {
+impl<T: Pod> DerefMut for BytesMut<T> {
     #[inline]
-    fn deref_mut(&mut self) -> &mut [u8] {
+    fn deref_mut(&mut self) -> &mut [T] {
         self.as_mut()
     }
 }
 
-impl<'a> From<&'a [u8]> for BytesMut {
-    fn from(src: &'a [u8]) -> BytesMut {
+impl<'a, T: Pod> From<&'a [T]> for BytesMut<T> {
+    fn from(src: &'a [T]) -> BytesMut<T> {
         BytesMut::from_vec(src.to_vec())
     }
 }
@@ -1270,8 +1310,8 @@ impl<'a> From<&'a str> for BytesMut {
     }
 }
 
-impl From<BytesMut> for Bytes {
-    fn from(src: BytesMut) -> Bytes {
+impl<T: Pod> From<BytesMut<T>> for Bytes<T> {
+    fn from(src: BytesMut<T>) -> Bytes<T> {
         src.freeze()
     }
 }
@@ -1422,7 +1462,7 @@ impl<'a> FromIterator<&'a u8> for BytesMut {
  *
  */
 
-unsafe fn increment_shared(ptr: *mut Shared) {
+unsafe fn increment_shared<T: Pod>(ptr: *mut Shared<T>) {
     let old_size = (*ptr).ref_count.fetch_add(1, Ordering::Relaxed);
 
     if old_size > isize::MAX as usize {
@@ -1430,7 +1470,7 @@ unsafe fn increment_shared(ptr: *mut Shared) {
     }
 }
 
-unsafe fn release_shared(ptr: *mut Shared) {
+unsafe fn release_shared<T: Pod>(ptr: *mut Shared<T>) {
     // `Shared` storage... follow the drop steps from Arc.
     if (*ptr).ref_count.fetch_sub(1, Ordering::Release) != 1 {
         return;
@@ -1462,7 +1502,7 @@ unsafe fn release_shared(ptr: *mut Shared) {
     drop(Box::from_raw(ptr));
 }
 
-impl Shared {
+impl<T: Pod> Shared<T> {
     fn is_unique(&self) -> bool {
         // The goal is to check if the current handle is the only handle
         // that currently has access to the buffer. This is done by
@@ -1708,8 +1748,8 @@ impl PartialEq<Bytes> for BytesMut {
     }
 }
 
-impl From<BytesMut> for Vec<u8> {
-    fn from(bytes: BytesMut) -> Self {
+impl<T: Pod> From<BytesMut<T>> for Vec<T> {
+    fn from(bytes: BytesMut<T>) -> Self {
         let kind = bytes.kind();
         let bytes = ManuallyDrop::new(bytes);
 
@@ -1719,7 +1759,7 @@ impl From<BytesMut> for Vec<u8> {
                 rebuild_vec(bytes.ptr.as_ptr(), bytes.len, bytes.cap, off)
             }
         } else {
-            let shared = bytes.data as *mut Shared;
+            let shared = bytes.data as *mut Shared<T>;
 
             if unsafe { (*shared).is_unique() } {
                 let vec = mem::replace(unsafe { &mut (*shared).vec }, Vec::new());
@@ -1744,7 +1784,7 @@ impl From<BytesMut> for Vec<u8> {
 }
 
 #[inline]
-fn vptr(ptr: *mut u8) -> NonNull<u8> {
+fn vptr<T>(ptr: *mut T) -> NonNull<T> {
     if cfg!(debug_assertions) {
         NonNull::new(ptr).expect("Vec pointer should be non-null")
     } else {
@@ -1764,7 +1804,7 @@ fn invalid_ptr<T>(addr: usize) -> *mut T {
     ptr.cast::<T>()
 }
 
-unsafe fn rebuild_vec(ptr: *mut u8, mut len: usize, mut cap: usize, off: usize) -> Vec<u8> {
+unsafe fn rebuild_vec<T>(ptr: *mut T, mut len: usize, mut cap: usize, off: usize) -> Vec<T> {
     let ptr = ptr.sub(off);
     len += off;
     cap += off;
@@ -1773,27 +1813,40 @@ unsafe fn rebuild_vec(ptr: *mut u8, mut len: usize, mut cap: usize, off: usize) 
 }
 
 // ===== impl SharedVtable =====
+struct VTablesMut<T: Pod>(PhantomData<T>);
+impl<T: Pod> VTablesMut<T> {
+    const SHARED_VTABLE: Vtable = Vtable {
+        clone: shared_v_clone::<T>,
+        to_vec: shared_v_to_vec::<T>,
+        to_mut: shared_v_to_mut::<T>,
+        is_unique: shared_v_is_unique::<T>,
+        drop: shared_v_drop::<T>,
+        layout: Layout::new::<T>(),
+        promotable: false,
+    };
+}
 
-static SHARED_VTABLE: Vtable = Vtable {
-    clone: shared_v_clone,
-    to_vec: shared_v_to_vec,
-    to_mut: shared_v_to_mut,
-    is_unique: shared_v_is_unique,
-    drop: shared_v_drop,
-};
-
-unsafe fn shared_v_clone(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Bytes {
-    let shared = data.load(Ordering::Relaxed) as *mut Shared;
+unsafe fn shared_v_clone<T: Pod>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> RawBytes {
+    let shared = data.load(Ordering::Relaxed) as *mut Shared<T>;
     increment_shared(shared);
 
     let data = AtomicPtr::new(shared as *mut ());
-    Bytes::with_vtable(ptr, len, data, &SHARED_VTABLE)
+    RawBytes::erase(Bytes::<T>::with_vtable(
+        ptr.cast::<T>(),
+        len,
+        data,
+        &VTablesMut::<T>::SHARED_VTABLE,
+    ))
 }
 
-unsafe fn shared_v_to_vec(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> Vec<u8> {
-    let shared: *mut Shared = data.load(Ordering::Relaxed).cast();
+unsafe fn shared_v_to_vec<T: Pod>(
+    data: &AtomicPtr<()>,
+    ptr: *const u8,
+    len: usize,
+) -> (*mut u8, usize, usize) {
+    let shared: *mut Shared<T> = data.load(Ordering::Relaxed).cast();
 
-    if (*shared).is_unique() {
+    let vec = if (*shared).is_unique() {
         let shared = &mut *shared;
 
         // Drop shared
@@ -1801,19 +1854,21 @@ unsafe fn shared_v_to_vec(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> V
         release_shared(shared);
 
         // Copy back buffer
-        ptr::copy(ptr, vec.as_mut_ptr(), len);
+        ptr::copy(ptr.cast::<T>(), vec.as_mut_ptr(), len);
         vec.set_len(len);
 
         vec
     } else {
-        let v = slice::from_raw_parts(ptr, len).to_vec();
+        let v = slice::from_raw_parts(ptr.cast::<T>(), len).to_vec();
         release_shared(shared);
         v
-    }
+    };
+    let mut vec = ManuallyDrop::new(vec);
+    (vec.as_mut_ptr().cast::<u8>(), vec.len(), vec.capacity())
 }
 
-unsafe fn shared_v_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> BytesMut {
-    let shared: *mut Shared = data.load(Ordering::Relaxed).cast();
+unsafe fn shared_v_to_mut<T: Pod>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> RawBytesMut {
+    let shared: *mut Shared<T> = data.load(Ordering::Relaxed).cast();
 
     if (*shared).is_unique() {
         let shared = &mut *shared;
@@ -1823,33 +1878,35 @@ unsafe fn shared_v_to_mut(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> B
         let v = &mut shared.vec;
         let v_capacity = v.capacity();
         let v_ptr = v.as_mut_ptr();
-        let offset = offset_from(ptr as *mut u8, v_ptr);
+        let offset = offset_from(ptr as *mut T, v_ptr);
         let cap = v_capacity - offset;
 
-        let ptr = vptr(ptr as *mut u8);
+        let ptr = vptr(ptr as *mut T);
 
-        BytesMut {
+        RawBytesMut::erase(BytesMut::<T> {
             ptr,
             len,
             cap,
             data: shared,
-        }
+        })
     } else {
-        let v = slice::from_raw_parts(ptr, len).to_vec();
+        let v = slice::from_raw_parts(ptr.cast::<T>(), len).to_vec();
         release_shared(shared);
-        BytesMut::from_vec(v)
+        RawBytesMut::erase(BytesMut::<T>::from_vec(v))
     }
 }
 
-unsafe fn shared_v_is_unique(data: &AtomicPtr<()>) -> bool {
+unsafe fn shared_v_is_unique<T: Pod>(data: &AtomicPtr<()>) -> bool {
     let shared = data.load(Ordering::Acquire);
-    let ref_count = (*shared.cast::<Shared>()).ref_count.load(Ordering::Relaxed);
+    let ref_count = (*shared.cast::<Shared<T>>())
+        .ref_count
+        .load(Ordering::Relaxed);
     ref_count == 1
 }
 
-unsafe fn shared_v_drop(data: &mut AtomicPtr<()>, _ptr: *const u8, _len: usize) {
+unsafe fn shared_v_drop<T: Pod>(data: &mut AtomicPtr<()>, _ptr: *const u8, _len: usize) {
     data.with_mut(|shared| {
-        release_shared(*shared as *mut Shared);
+        release_shared(*shared as *mut Shared<T>);
     });
 }
 

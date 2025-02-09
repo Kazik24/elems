@@ -181,7 +181,7 @@ fn split_off_oob() {
 
 #[test]
 fn split_off_uninitialized() {
-    let mut bytes = BytesMut::with_capacity(1024);
+    let mut bytes = BytesMut::<u8>::with_capacity(1024);
     let other = bytes.split_off(128);
 
     assert_eq!(bytes.len(), 0);
@@ -286,7 +286,7 @@ fn split_to_oob_mut() {
 #[test]
 #[should_panic]
 fn split_to_uninitialized() {
-    let mut bytes = BytesMut::with_capacity(1024);
+    let mut bytes = BytesMut::<u8>::with_capacity(1024);
     let _other = bytes.split_to(128);
 }
 
@@ -497,7 +497,7 @@ fn reserve_vec_recycling() {
 
 #[test]
 fn reserve_in_arc_unique_does_not_overallocate() {
-    let mut bytes = BytesMut::with_capacity(1000);
+    let mut bytes = BytesMut::<u8>::with_capacity(1000);
     let _ = bytes.split();
 
     // now bytes is Arc and refcount == 1
@@ -509,7 +509,7 @@ fn reserve_in_arc_unique_does_not_overallocate() {
 
 #[test]
 fn reserve_in_arc_unique_doubles() {
-    let mut bytes = BytesMut::with_capacity(1000);
+    let mut bytes = BytesMut::<u8>::with_capacity(1000);
     let _ = bytes.split();
 
     // now bytes is Arc and refcount == 1
@@ -549,7 +549,7 @@ fn reserve_in_arc_unique_does_not_overallocate_after_multiple_splits() {
 
 #[test]
 fn reserve_in_arc_nonunique_does_not_overallocate() {
-    let mut bytes = BytesMut::with_capacity(1000);
+    let mut bytes = BytesMut::<u8>::with_capacity(1000);
     let _copy = bytes.split();
 
     // now bytes is Arc and refcount == 2
@@ -1011,7 +1011,7 @@ fn bytes_reserve_overflow() {
 fn bytes_with_capacity_but_empty() {
     // See https://github.com/tokio-rs/bytes/issues/340
     let vec = Vec::with_capacity(1);
-    let _ = Bytes::from(vec);
+    let _ = Bytes::<u8>::from(vec);
 }
 
 #[test]
@@ -1139,7 +1139,7 @@ fn test_bytes_into_vec_promotable_even() {
 
 #[test]
 fn test_bytes_vec_conversion() {
-    let mut vec = Vec::with_capacity(10);
+    let mut vec = Vec::<u8>::with_capacity(10);
     vec.extend(b"abcdefg");
     let b = Bytes::from(vec);
     let v = Vec::from(b);
@@ -1337,7 +1337,7 @@ fn test_bytesmut_from_bytes_promotable_even_arc_offset() {
 
 #[test]
 fn try_reclaim_empty() {
-    let mut buf = BytesMut::new();
+    let mut buf = BytesMut::<u8>::new();
     assert_eq!(false, buf.try_reclaim(6));
     buf.reserve(6);
     assert_eq!(true, buf.try_reclaim(6));
@@ -1345,7 +1345,7 @@ fn try_reclaim_empty() {
     assert!(cap >= 6);
     assert_eq!(false, buf.try_reclaim(cap + 1));
 
-    let mut buf = BytesMut::new();
+    let mut buf = BytesMut::<u8>::new();
     buf.reserve(6);
     let cap = buf.capacity();
     assert!(cap >= 6);
