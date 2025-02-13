@@ -3,7 +3,7 @@ use std::alloc::{GlobalAlloc, Layout, System};
 use std::ptr::null_mut;
 use std::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
 
-use bytes::{Buf, Bytes};
+use elems::{Buf, Bytes, Elems};
 
 #[global_allocator]
 static LEDGER: Ledger = Ledger::new();
@@ -87,21 +87,21 @@ unsafe impl GlobalAlloc for Ledger {
 
 #[test]
 fn test_bytes_advance() {
-    let mut bytes = Bytes::<u8>::from(vec![10, 20, 30]);
+    let mut bytes = Bytes::from(vec![10, 20, 30]);
     bytes.advance(1);
     drop(bytes);
 }
 
 #[test]
 fn test_bytes_truncate() {
-    let mut bytes = Bytes::<u8>::from(vec![10, 20, 30]);
+    let mut bytes = Bytes::from(vec![10, 20, 30]);
     bytes.truncate(2);
     drop(bytes);
 }
 
 #[test]
 fn test_bytes_truncate_and_advance() {
-    let mut bytes = Bytes::<u8>::from(vec![10, 20, 30]);
+    let mut bytes = Bytes::from(vec![10, 20, 30]);
     bytes.truncate(2);
     bytes.advance(1);
     drop(bytes);
@@ -121,16 +121,16 @@ fn test_bytes_into_vec() {
     let vec = vec![33u8; 1024];
 
     // Test cases where kind == KIND_VEC
-    let b1 = Bytes::from(vec.clone());
+    let b1 = Elems::from(vec.clone());
     assert_eq!(Vec::from(b1), vec);
 
     // Test cases where kind == KIND_ARC, ref_cnt == 1
-    let b1 = Bytes::from(vec.clone());
+    let b1 = Elems::from(vec.clone());
     drop(b1.clone());
     assert_eq!(Vec::from(b1), vec);
 
     // Test cases where kind == KIND_ARC, ref_cnt == 2
-    let b1 = Bytes::from(vec.clone());
+    let b1 = Elems::from(vec.clone());
     let b2 = b1.clone();
     assert_eq!(Vec::from(b1), vec);
 
@@ -138,7 +138,7 @@ fn test_bytes_into_vec() {
     assert_eq!(Vec::from(b2), vec);
 
     // Test cases where offset != 0
-    let mut b1 = Bytes::from(vec.clone());
+    let mut b1 = Elems::from(vec.clone());
     let b2 = b1.split_off(20);
 
     assert_eq!(Vec::from(b2), vec[20..]);

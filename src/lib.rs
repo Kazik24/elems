@@ -9,28 +9,28 @@
 //! Provides abstractions for working with bytes.
 //!
 //! The `bytes` crate provides an efficient byte buffer structure
-//! ([`Bytes`]) and traits for working with buffer
+//! ([`Elems`]) and traits for working with buffer
 //! implementations ([`Buf`], [`BufMut`]).
 //!
-//! # `Bytes`
+//! # `Elems`
 //!
-//! `Bytes` is an efficient container for storing and operating on contiguous
+//! `Elems` is an efficient container for storing and operating on contiguous
 //! slices of memory. It is intended for use primarily in networking code, but
 //! could have applications elsewhere as well.
 //!
-//! `Bytes` values facilitate zero-copy network programming by allowing multiple
-//! `Bytes` objects to point to the same underlying memory. This is managed by
+//! `Elems` values facilitate zero-copy network programming by allowing multiple
+//! `Elems` objects to point to the same underlying memory. This is managed by
 //! using a reference count to track when the memory is no longer needed and can
 //! be freed.
 //!
-//! A `Bytes` handle can be created directly from an existing byte store (such as `&[u8]`
-//! or `Vec<u8>`), but usually a `BytesMut` is used first and written to. For
+//! A `Elems` handle can be created directly from an existing byte store (such as `&[u8]`
+//! or `Vec<u8>`), but usually a `ElemsMut` is used first and written to. For
 //! example:
 //!
 //! ```rust
-//! use bytes::{BytesMut, BufMut};
+//! use elems::{ElemsMut, BufMut};
 //!
-//! let mut buf = BytesMut::with_capacity(1024);
+//! let mut buf = ElemsMut::with_capacity(1024);
 //! buf.put(&b"hello world"[..]);
 //! buf.put_u16(1234);
 //!
@@ -49,12 +49,12 @@
 //! `a` and `b` will share the underlying buffer and maintain indices tracking
 //! the view into the buffer represented by the handle.
 //!
-//! See the [struct docs](`Bytes`) for more details.
+//! See the [struct docs](`Elems`) for more details.
 //!
 //! # `Buf`, `BufMut`
 //!
 //! These two traits provide read and write access to buffers. The underlying
-//! storage may or may not be in contiguous memory. For example, `Bytes` is a
+//! storage may or may not be in contiguous memory. For example, `Elems` is a
 //! buffer that guarantees contiguous memory, but a [rope] stores the bytes in
 //! disjoint chunks. `Buf` and `BufMut` maintain cursors tracking the current
 //! position in the underlying byte storage. When bytes are read or written, the
@@ -84,7 +84,9 @@ mod bytes_mut;
 mod fmt;
 mod loom;
 pub use crate::bytes::Bytes;
+pub use crate::bytes::Elems;
 pub use crate::bytes_mut::BytesMut;
+pub use crate::bytes_mut::ElemsMut;
 
 // Optional Serde support
 #[cfg(feature = "serde")]

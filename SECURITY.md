@@ -1,6 +1,6 @@
 # Security Policy
 
-Bytes is part of the Tokio project and uses the same security policy as [Tokio][tokio-security].
+Elems is part of the Tokio project and uses the same security policy as [Tokio][tokio-security].
 
 ## Report a security issue
 

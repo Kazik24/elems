@@ -3,14 +3,14 @@
 
 extern crate test;
 
-use bytes::{BufMut, BytesMut};
+use elems::{BufMut, ElemsMut};
 use test::Bencher;
 
 #[bench]
 fn alloc_small(b: &mut Bencher) {
     b.iter(|| {
         for _ in 0..1024 {
-            test::black_box(BytesMut::with_capacity(12));
+            test::black_box(ElemsMut::with_capacity(12));
         }
     })
 }
@@ -18,20 +18,20 @@ fn alloc_small(b: &mut Bencher) {
 #[bench]
 fn alloc_mid(b: &mut Bencher) {
     b.iter(|| {
-        test::black_box(BytesMut::with_capacity(128));
+        test::black_box(ElemsMut::with_capacity(128));
     })
 }
 
 #[bench]
 fn alloc_big(b: &mut Bencher) {
     b.iter(|| {
-        test::black_box(BytesMut::with_capacity(4096));
+        test::black_box(ElemsMut::with_capacity(4096));
     })
 }
 
 #[bench]
 fn deref_unique(b: &mut Bencher) {
-    let mut buf = BytesMut::with_capacity(4096);
+    let mut buf = ElemsMut::with_capacity(4096);
     buf.put(&[0u8; 1024][..]);
 
     b.iter(|| {
@@ -43,7 +43,7 @@ fn deref_unique(b: &mut Bencher) {
 
 #[bench]
 fn deref_unique_unroll(b: &mut Bencher) {
-    let mut buf = BytesMut::with_capacity(4096);
+    let mut buf = ElemsMut::with_capacity(4096);
     buf.put(&[0u8; 1024][..]);
 
     b.iter(|| {
@@ -62,7 +62,7 @@ fn deref_unique_unroll(b: &mut Bencher) {
 
 #[bench]
 fn deref_shared(b: &mut Bencher) {
-    let mut buf = BytesMut::with_capacity(4096);
+    let mut buf = ElemsMut::with_capacity(4096);
     buf.put(&[0u8; 1024][..]);
     let _b2 = buf.split_off(1024);
 
@@ -75,10 +75,10 @@ fn deref_shared(b: &mut Bencher) {
 
 #[bench]
 fn deref_two(b: &mut Bencher) {
-    let mut buf1 = BytesMut::with_capacity(8);
+    let mut buf1 = ElemsMut::with_capacity(8);
     buf1.put(&[0u8; 8][..]);
 
-    let mut buf2 = BytesMut::with_capacity(4096);
+    let mut buf2 = ElemsMut::with_capacity(4096);
     buf2.put(&[0u8; 1024][..]);
 
     b.iter(|| {
@@ -91,7 +91,7 @@ fn deref_two(b: &mut Bencher) {
 
 #[bench]
 fn clone_frozen(b: &mut Bencher) {
-    let bytes = BytesMut::from(&b"hello world 1234567890 and have a good byte 0987654321"[..])
+    let bytes = ElemsMut::from(&b"hello world 1234567890 and have a good byte 0987654321"[..])
         .split()
         .freeze();
 
@@ -105,7 +105,7 @@ fn clone_frozen(b: &mut Bencher) {
 #[bench]
 fn alloc_write_split_to_mid(b: &mut Bencher) {
     b.iter(|| {
-        let mut buf = BytesMut::with_capacity(128);
+        let mut buf = ElemsMut::with_capacity(128);
         buf.put_slice(&[0u8; 64]);
         test::black_box(buf.split_to(64));
     })
@@ -116,7 +116,7 @@ fn drain_write_drain(b: &mut Bencher) {
     let data = [0u8; 128];
 
     b.iter(|| {
-        let mut buf = BytesMut::with_capacity(1024);
+        let mut buf = ElemsMut::with_capacity(1024);
         let mut parts = Vec::with_capacity(8);
 
         for _ in 0..8 {
@@ -131,7 +131,7 @@ fn drain_write_drain(b: &mut Bencher) {
 #[bench]
 fn fmt_write(b: &mut Bencher) {
     use std::fmt::Write;
-    let mut buf = BytesMut::with_capacity(128);
+    let mut buf = ElemsMut::with_capacity(128);
     let s = "foo bar baz quux lorem ipsum dolor et";
 
     b.bytes = s.len() as u64;
@@ -146,7 +146,7 @@ fn fmt_write(b: &mut Bencher) {
 
 #[bench]
 fn bytes_mut_extend(b: &mut Bencher) {
-    let mut buf = BytesMut::with_capacity(256);
+    let mut buf = ElemsMut::with_capacity(256);
     let data = [33u8; 32];
 
     b.bytes = data.len() as u64 * 4;
@@ -161,11 +161,11 @@ fn bytes_mut_extend(b: &mut Bencher) {
     });
 }
 
-// BufMut for BytesMut vs Vec<u8>
+// BufMut for ElemsMut vs Vec<u8>
 
 #[bench]
 fn put_slice_bytes_mut(b: &mut Bencher) {
-    let mut buf = BytesMut::with_capacity(256);
+    let mut buf = ElemsMut::with_capacity(256);
     let data = [33u8; 32];
 
     b.bytes = data.len() as u64 * 4;
@@ -182,7 +182,7 @@ fn put_slice_bytes_mut(b: &mut Bencher) {
 
 #[bench]
 fn put_u8_bytes_mut(b: &mut Bencher) {
-    let mut buf = BytesMut::with_capacity(256);
+    let mut buf = ElemsMut::with_capacity(256);
     let cnt = 128;
 
     b.bytes = cnt as u64;

@@ -1,4 +1,4 @@
-use super::{Bytes, BytesMut};
+use super::{Elems, ElemsMut};
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::{cmp, fmt};
@@ -85,5 +85,5 @@ macro_rules! serde_impl {
     };
 }
 
-serde_impl!(Bytes, BytesVisitor, copy_from_slice, from);
-serde_impl!(BytesMut, BytesMutVisitor, from, from_vec);
+serde_impl!(Elems, ElemsVisitor, copy_from_slice, from);
+serde_impl!(ElemsMut, ElemsMutVisitor, from, from_vec);

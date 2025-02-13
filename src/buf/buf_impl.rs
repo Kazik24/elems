@@ -101,7 +101,7 @@ fn sign_extend(val: u64, nbytes: usize) -> i64 {
 /// The simplest `Buf` is a `&[u8]`.
 ///
 /// ```
-/// use bytes::Buf;
+/// use elems::Buf;
 ///
 /// let mut buf = &b"hello world"[..];
 ///
@@ -124,7 +124,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"hello world"[..];
     ///
@@ -152,7 +152,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"hello world"[..];
     ///
@@ -225,7 +225,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"hello world"[..];
     ///
@@ -256,7 +256,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"a"[..];
     ///
@@ -278,7 +278,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"hello world"[..];
     /// let mut dst = [0; 5];
@@ -303,7 +303,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08 hello"[..];
     /// assert_eq!(8, buf.get_u8());
@@ -331,7 +331,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08 hello"[..];
     /// assert_eq!(8, buf.get_i8());
@@ -359,7 +359,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08\x09 hello"[..];
     /// assert_eq!(0x0809, buf.get_u16());
@@ -379,7 +379,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x09\x08 hello"[..];
     /// assert_eq!(0x0809, buf.get_u16_le());
@@ -399,7 +399,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x08\x09 hello",
@@ -422,7 +422,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08\x09 hello"[..];
     /// assert_eq!(0x0809, buf.get_i16());
@@ -442,7 +442,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x09\x08 hello"[..];
     /// assert_eq!(0x0809, buf.get_i16_le());
@@ -462,7 +462,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x08\x09 hello",
@@ -485,7 +485,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08\x09\xA0\xA1 hello"[..];
     /// assert_eq!(0x0809A0A1, buf.get_u32());
@@ -505,7 +505,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\xA1\xA0\x09\x08 hello"[..];
     /// assert_eq!(0x0809A0A1, buf.get_u32_le());
@@ -525,7 +525,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x08\x09\xA0\xA1 hello",
@@ -548,7 +548,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08\x09\xA0\xA1 hello"[..];
     /// assert_eq!(0x0809A0A1, buf.get_i32());
@@ -568,7 +568,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\xA1\xA0\x09\x08 hello"[..];
     /// assert_eq!(0x0809A0A1, buf.get_i32_le());
@@ -588,7 +588,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x08\x09\xA0\xA1 hello",
@@ -611,7 +611,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07\x08 hello"[..];
     /// assert_eq!(0x0102030405060708, buf.get_u64());
@@ -631,7 +631,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08\x07\x06\x05\x04\x03\x02\x01 hello"[..];
     /// assert_eq!(0x0102030405060708, buf.get_u64_le());
@@ -651,7 +651,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x01\x02\x03\x04\x05\x06\x07\x08 hello",
@@ -674,7 +674,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07\x08 hello"[..];
     /// assert_eq!(0x0102030405060708, buf.get_i64());
@@ -694,7 +694,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08\x07\x06\x05\x04\x03\x02\x01 hello"[..];
     /// assert_eq!(0x0102030405060708, buf.get_i64_le());
@@ -714,7 +714,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x01\x02\x03\x04\x05\x06\x07\x08 hello",
@@ -737,7 +737,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16 hello"[..];
     /// assert_eq!(0x01020304050607080910111213141516, buf.get_u128());
@@ -757,7 +757,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x16\x15\x14\x13\x12\x11\x10\x09\x08\x07\x06\x05\x04\x03\x02\x01 hello"[..];
     /// assert_eq!(0x01020304050607080910111213141516, buf.get_u128_le());
@@ -777,7 +777,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16 hello",
@@ -800,7 +800,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16 hello"[..];
     /// assert_eq!(0x01020304050607080910111213141516, buf.get_i128());
@@ -820,7 +820,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x16\x15\x14\x13\x12\x11\x10\x09\x08\x07\x06\x05\x04\x03\x02\x01 hello"[..];
     /// assert_eq!(0x01020304050607080910111213141516, buf.get_i128_le());
@@ -840,7 +840,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16 hello",
@@ -863,7 +863,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x01\x02\x03 hello"[..];
     /// assert_eq!(0x010203, buf.get_uint(3));
@@ -884,7 +884,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x03\x02\x01 hello"[..];
     /// assert_eq!(0x010203, buf.get_uint_le(3));
@@ -905,7 +905,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x01\x02\x03 hello",
@@ -933,7 +933,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x01\x02\x03 hello"[..];
     /// assert_eq!(0x010203, buf.get_int(3));
@@ -954,7 +954,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x03\x02\x01 hello"[..];
     /// assert_eq!(0x010203, buf.get_int_le(3));
@@ -975,7 +975,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x01\x02\x03 hello",
@@ -1004,7 +1004,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x3F\x99\x99\x9A hello"[..];
     /// assert_eq!(1.2f32, buf.get_f32());
@@ -1025,7 +1025,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x9A\x99\x99\x3F hello"[..];
     /// assert_eq!(1.2f32, buf.get_f32_le());
@@ -1046,7 +1046,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x3F\x99\x99\x9A hello",
@@ -1070,7 +1070,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x3F\xF3\x33\x33\x33\x33\x33\x33 hello"[..];
     /// assert_eq!(1.2f64, buf.get_f64());
@@ -1091,7 +1091,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x33\x33\x33\x33\x33\x33\xF3\x3F hello"[..];
     /// assert_eq!(1.2f64, buf.get_f64_le());
@@ -1112,7 +1112,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x3F\xF3\x33\x33\x33\x33\x33\x33 hello",
@@ -1139,7 +1139,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"hello world"[..];
     /// let mut dst = [0; 5];
@@ -1150,7 +1150,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"hello world"[..];
     /// let mut dst = [0; 12];
@@ -1188,7 +1188,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08 hello"[..];
     /// assert_eq!(Ok(0x08_u8), buf.try_get_u8());
@@ -1196,7 +1196,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b""[..];
     /// assert_eq!(Err(TryGetError{requested: 1, available: 0}), buf.try_get_u8());
@@ -1223,7 +1223,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08 hello"[..];
     /// assert_eq!(Ok(0x08_i8), buf.try_get_i8());
@@ -1231,7 +1231,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b""[..];
     /// assert_eq!(Err(TryGetError{requested: 1, available: 0}), buf.try_get_i8());
@@ -1258,7 +1258,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08\x09 hello"[..];
     /// assert_eq!(Ok(0x0809_u16), buf.try_get_u16());
@@ -1266,7 +1266,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x08"[..];
     /// assert_eq!(Err(TryGetError{requested: 2, available: 1}), buf.try_get_u16());
@@ -1286,7 +1286,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x09\x08 hello"[..];
     /// assert_eq!(Ok(0x0809_u16), buf.try_get_u16_le());
@@ -1294,7 +1294,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x08"[..];
     /// assert_eq!(Err(TryGetError{requested: 2, available: 1}), buf.try_get_u16_le());
@@ -1314,7 +1314,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x08\x09 hello",
@@ -1325,7 +1325,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x08"[..];
     /// assert_eq!(Err(TryGetError{requested: 2, available: 1}), buf.try_get_u16_ne());
@@ -1345,7 +1345,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08\x09 hello"[..];
     /// assert_eq!(Ok(0x0809_i16), buf.try_get_i16());
@@ -1353,7 +1353,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x08"[..];
     /// assert_eq!(Err(TryGetError{requested: 2, available: 1}), buf.try_get_i16());
@@ -1373,7 +1373,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x09\x08 hello"[..];
     /// assert_eq!(Ok(0x0809_i16), buf.try_get_i16_le());
@@ -1381,7 +1381,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x08"[..];
     /// assert_eq!(Err(TryGetError{requested: 2, available: 1}), buf.try_get_i16_le());
@@ -1401,7 +1401,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x08\x09 hello",
@@ -1412,7 +1412,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x08"[..];
     /// assert_eq!(Err(TryGetError{requested: 2, available: 1}), buf.try_get_i16_ne());
@@ -1432,7 +1432,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08\x09\xA0\xA1 hello"[..];
     /// assert_eq!(Ok(0x0809A0A1), buf.try_get_u32());
@@ -1440,7 +1440,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x01\x02\x03"[..];
     /// assert_eq!(Err(TryGetError{requested: 4, available: 3}), buf.try_get_u32());
@@ -1460,7 +1460,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\xA1\xA0\x09\x08 hello"[..];
     /// assert_eq!(Ok(0x0809A0A1_u32), buf.try_get_u32_le());
@@ -1468,7 +1468,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x08\x09\xA0"[..];
     /// assert_eq!(Err(TryGetError{requested: 4, available: 3}), buf.try_get_u32_le());
@@ -1488,7 +1488,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x08\x09\xA0\xA1 hello",
@@ -1499,7 +1499,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x08\x09\xA0"[..];
     /// assert_eq!(Err(TryGetError{requested: 4, available: 3}), buf.try_get_u32_ne());
@@ -1519,7 +1519,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08\x09\xA0\xA1 hello"[..];
     /// assert_eq!(Ok(0x0809A0A1_i32), buf.try_get_i32());
@@ -1527,7 +1527,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x01\x02\x03"[..];
     /// assert_eq!(Err(TryGetError{requested: 4, available: 3}), buf.try_get_i32());
@@ -1547,7 +1547,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\xA1\xA0\x09\x08 hello"[..];
     /// assert_eq!(Ok(0x0809A0A1_i32), buf.try_get_i32_le());
@@ -1555,7 +1555,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x08\x09\xA0"[..];
     /// assert_eq!(Err(TryGetError{requested: 4, available: 3}), buf.try_get_i32_le());
@@ -1575,7 +1575,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x08\x09\xA0\xA1 hello",
@@ -1586,7 +1586,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x08\x09\xA0"[..];
     /// assert_eq!(Err(TryGetError{requested: 4, available: 3}), buf.try_get_i32_ne());
@@ -1606,7 +1606,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07\x08 hello"[..];
     /// assert_eq!(Ok(0x0102030405060708_u64), buf.try_get_u64());
@@ -1614,7 +1614,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07"[..];
     /// assert_eq!(Err(TryGetError{requested: 8, available: 7}), buf.try_get_u64());
@@ -1634,7 +1634,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08\x07\x06\x05\x04\x03\x02\x01 hello"[..];
     /// assert_eq!(Ok(0x0102030405060708_u64), buf.try_get_u64_le());
@@ -1642,7 +1642,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x08\x07\x06\x05\x04\x03\x02"[..];
     /// assert_eq!(Err(TryGetError{requested: 8, available: 7}), buf.try_get_u64_le());
@@ -1662,7 +1662,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x01\x02\x03\x04\x05\x06\x07\x08 hello",
@@ -1673,7 +1673,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07"[..];
     /// assert_eq!(Err(TryGetError{requested: 8, available: 7}), buf.try_get_u64_ne());
@@ -1693,7 +1693,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07\x08 hello"[..];
     /// assert_eq!(Ok(0x0102030405060708_i64), buf.try_get_i64());
@@ -1701,7 +1701,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07"[..];
     /// assert_eq!(Err(TryGetError{requested: 8, available: 7}), buf.try_get_i64());
@@ -1721,7 +1721,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x08\x07\x06\x05\x04\x03\x02\x01 hello"[..];
     /// assert_eq!(Ok(0x0102030405060708_i64), buf.try_get_i64_le());
@@ -1729,7 +1729,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x08\x07\x06\x05\x04\x03\x02"[..];
     /// assert_eq!(Err(TryGetError{requested: 8, available: 7}), buf.try_get_i64_le());
@@ -1749,7 +1749,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x01\x02\x03\x04\x05\x06\x07\x08 hello",
@@ -1760,7 +1760,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07"[..];
     /// assert_eq!(Err(TryGetError{requested: 8, available: 7}), buf.try_get_i64_ne());
@@ -1780,7 +1780,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16 hello"[..];
     /// assert_eq!(Ok(0x01020304050607080910111213141516_u128), buf.try_get_u128());
@@ -1788,7 +1788,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15"[..];
     /// assert_eq!(Err(TryGetError{requested: 16, available: 15}), buf.try_get_u128());
@@ -1808,7 +1808,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x16\x15\x14\x13\x12\x11\x10\x09\x08\x07\x06\x05\x04\x03\x02\x01 hello"[..];
     /// assert_eq!(Ok(0x01020304050607080910111213141516_u128), buf.try_get_u128_le());
@@ -1816,7 +1816,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x16\x15\x14\x13\x12\x11\x10\x09\x08\x07\x06\x05\x04\x03\x02"[..];
     /// assert_eq!(Err(TryGetError{requested: 16, available: 15}), buf.try_get_u128_le());
@@ -1836,7 +1836,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16 hello",
@@ -1847,7 +1847,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15"[..];
     /// assert_eq!(Err(TryGetError{requested: 16, available: 15}), buf.try_get_u128_ne());
@@ -1867,7 +1867,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16 hello"[..];
     /// assert_eq!(Ok(0x01020304050607080910111213141516_i128), buf.try_get_i128());
@@ -1875,7 +1875,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15"[..];
     /// assert_eq!(Err(TryGetError{requested: 16, available: 15}), buf.try_get_i128());
@@ -1895,7 +1895,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x16\x15\x14\x13\x12\x11\x10\x09\x08\x07\x06\x05\x04\x03\x02\x01 hello"[..];
     /// assert_eq!(Ok(0x01020304050607080910111213141516_i128), buf.try_get_i128_le());
@@ -1903,7 +1903,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x16\x15\x14\x13\x12\x11\x10\x09\x08\x07\x06\x05\x04\x03\x02"[..];
     /// assert_eq!(Err(TryGetError{requested: 16, available: 15}), buf.try_get_i128_le());
@@ -1923,7 +1923,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15\x16 hello",
@@ -1934,7 +1934,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x01\x02\x03\x04\x05\x06\x07\x08\x09\x10\x11\x12\x13\x14\x15"[..];
     /// assert_eq!(Err(TryGetError{requested: 16, available: 15}), buf.try_get_i128_ne());
@@ -1954,7 +1954,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x01\x02\x03 hello"[..];
     /// assert_eq!(Ok(0x010203_u64), buf.try_get_uint(3));
@@ -1962,7 +1962,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x01\x02\x03"[..];
     /// assert_eq!(Err(TryGetError{requested: 4, available: 3}), buf.try_get_uint(4));
@@ -1986,7 +1986,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x03\x02\x01 hello"[..];
     /// assert_eq!(Ok(0x010203_u64), buf.try_get_uint_le(3));
@@ -1994,7 +1994,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x01\x02\x03"[..];
     /// assert_eq!(Err(TryGetError{requested: 4, available: 3}), buf.try_get_uint_le(4));
@@ -2018,7 +2018,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x01\x02\x03 hello",
@@ -2029,7 +2029,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x01\x02\x03",
@@ -2060,7 +2060,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x01\x02\x03 hello"[..];
     /// assert_eq!(Ok(0x010203_i64), buf.try_get_int(3));
@@ -2068,7 +2068,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x01\x02\x03"[..];
     /// assert_eq!(Err(TryGetError{requested: 4, available: 3}), buf.try_get_int(4));
@@ -2092,7 +2092,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x03\x02\x01 hello"[..];
     /// assert_eq!(Ok(0x010203_i64), buf.try_get_int_le(3));
@@ -2100,7 +2100,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x01\x02\x03"[..];
     /// assert_eq!(Err(TryGetError{requested: 4, available: 3}), buf.try_get_int_le(4));
@@ -2124,7 +2124,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x01\x02\x03 hello",
@@ -2135,7 +2135,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x01\x02\x03",
@@ -2167,7 +2167,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x3F\x99\x99\x9A hello"[..];
     /// assert_eq!(1.2f32, buf.get_f32());
@@ -2175,7 +2175,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x3F\x99\x99"[..];
     /// assert_eq!(Err(TryGetError{requested: 4, available: 3}), buf.try_get_f32());
@@ -2196,7 +2196,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x9A\x99\x99\x3F hello"[..];
     /// assert_eq!(1.2f32, buf.get_f32_le());
@@ -2204,7 +2204,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x3F\x99\x99"[..];
     /// assert_eq!(Err(TryGetError{requested: 4, available: 3}), buf.try_get_f32_le());
@@ -2225,7 +2225,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x3F\x99\x99\x9A hello",
@@ -2236,7 +2236,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x3F\x99\x99"[..];
     /// assert_eq!(Err(TryGetError{requested: 4, available: 3}), buf.try_get_f32_ne());
@@ -2257,7 +2257,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x3F\xF3\x33\x33\x33\x33\x33\x33 hello"[..];
     /// assert_eq!(1.2f64, buf.get_f64());
@@ -2265,7 +2265,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x3F\xF3\x33\x33\x33\x33\x33"[..];
     /// assert_eq!(Err(TryGetError{requested: 8, available: 7}), buf.try_get_f64());
@@ -2286,7 +2286,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = &b"\x33\x33\x33\x33\x33\x33\xF3\x3F hello"[..];
     /// assert_eq!(1.2f64, buf.get_f64_le());
@@ -2294,7 +2294,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x3F\xF3\x33\x33\x33\x33\x33"[..];
     /// assert_eq!(Err(TryGetError{requested: 8, available: 7}), buf.try_get_f64_le());
@@ -2315,7 +2315,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf: &[u8] = match cfg!(target_endian = "big") {
     ///     true => b"\x3F\xF3\x33\x33\x33\x33\x33\x33 hello",
@@ -2326,7 +2326,7 @@ pub trait Buf {
     /// ```
     ///
     /// ```
-    /// use bytes::{Buf, TryGetError};
+    /// use elems::{Buf, TryGetError};
     ///
     /// let mut buf = &b"\x3F\xF3\x33\x33\x33\x33\x33"[..];
     /// assert_eq!(Err(TryGetError{requested: 8, available: 7}), buf.try_get_f64_ne());
@@ -2336,17 +2336,17 @@ pub trait Buf {
         Ok(f64::from_bits(self.try_get_u64_ne()?))
     }
 
-    /// Consumes `len` bytes inside self and returns new instance of `Bytes`
+    /// Consumes `len` bytes inside self and returns new instance of `Elems`
     /// with this data.
     ///
     /// This function may be optimized by the underlying type to avoid actual
-    /// copies. For example, `Bytes` implementation will do a shallow copy
+    /// copies. For example, `Elems` implementation will do a shallow copy
     /// (ref-count increment).
     ///
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let bytes = (&b"hello world"[..]).copy_to_bytes(5);
     /// assert_eq!(&bytes[..], &b"hello"[..]);
@@ -2355,7 +2355,7 @@ pub trait Buf {
     /// # Panics
     ///
     /// This function panics if `len > self.remaining()`.
-    fn copy_to_bytes(&mut self, len: usize) -> crate::Bytes {
+    fn copy_to_bytes(&mut self, len: usize) -> crate::Elems {
         use super::BufMut;
 
         if self.remaining() < len {
@@ -2365,7 +2365,7 @@ pub trait Buf {
             });
         }
 
-        let mut ret = crate::BytesMut::with_capacity(len);
+        let mut ret = crate::ElemsMut::with_capacity(len);
         ret.put(self.take(len));
         ret.freeze()
     }
@@ -2378,7 +2378,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::{Buf, BufMut};
+    /// use elems::{Buf, BufMut};
     ///
     /// let mut buf = b"hello world"[..].take(5);
     /// let mut dst = vec![];
@@ -2406,7 +2406,7 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut chain = b"hello "[..].chain(&b"world"[..]);
     ///
@@ -2430,10 +2430,10 @@ pub trait Buf {
     /// # Examples
     ///
     /// ```
-    /// use bytes::{Bytes, Buf};
+    /// use elems::{Elems, Buf};
     /// use std::io::Read;
     ///
-    /// let buf = Bytes::from("hello world");
+    /// let buf = Elems::from("hello world");
     ///
     /// let mut reader = buf.reader();
     /// let mut dst = [0; 1024];
@@ -2872,7 +2872,7 @@ macro_rules! deref_forward_buf {
         }
 
         #[inline]
-        fn copy_to_bytes(&mut self, len: usize) -> crate::Bytes {
+        fn copy_to_bytes(&mut self, len: usize) -> crate::Elems {
             (**self).copy_to_bytes(len)
         }
     };

@@ -3,7 +3,7 @@
 
 extern crate test;
 
-use bytes::Buf;
+use elems::Buf;
 use test::Bencher;
 
 /// Dummy Buf implementation

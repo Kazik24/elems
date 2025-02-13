@@ -1,6 +1,6 @@
 [package]
 
-name = "bytes"
+name = "elems"
 # When releasing to crates.io:
 # - Update CHANGELOG.md.
 # - Create "v1.x.y" git tag.

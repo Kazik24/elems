@@ -27,7 +27,7 @@ impl UninitSlice {
     /// # Examples
     ///
     /// ```
-    /// use bytes::buf::UninitSlice;
+    /// use elems::buf::UninitSlice;
     ///
     /// let mut buffer = [0u8; 64];
     /// let slice = UninitSlice::new(&mut buffer[..]);
@@ -42,7 +42,7 @@ impl UninitSlice {
     /// # Examples
     ///
     /// ```
-    /// use bytes::buf::UninitSlice;
+    /// use elems::buf::UninitSlice;
     /// use core::mem::MaybeUninit;
     ///
     /// let mut buffer = [MaybeUninit::uninit(); 64];
@@ -70,7 +70,7 @@ impl UninitSlice {
     /// # Examples
     ///
     /// ```
-    /// use bytes::buf::UninitSlice;
+    /// use elems::buf::UninitSlice;
     ///
     /// let bytes = b"hello world".to_vec();
     /// let ptr = bytes.as_ptr() as *mut _;
@@ -94,7 +94,7 @@ impl UninitSlice {
     /// # Examples
     ///
     /// ```
-    /// use bytes::buf::UninitSlice;
+    /// use elems::buf::UninitSlice;
     ///
     /// let mut data = [b'f', b'o', b'o'];
     /// let slice = unsafe { UninitSlice::from_raw_parts_mut(data.as_mut_ptr(), 3) };
@@ -121,7 +121,7 @@ impl UninitSlice {
     /// # Examples
     ///
     /// ```
-    /// use bytes::buf::UninitSlice;
+    /// use elems::buf::UninitSlice;
     ///
     /// let mut data = [b'f', b'o', b'o'];
     /// let slice = unsafe { UninitSlice::from_raw_parts_mut(data.as_mut_ptr(), 3) };
@@ -151,7 +151,7 @@ impl UninitSlice {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut data = [0, 1, 2];
     /// let mut slice = &mut data[..];
@@ -175,7 +175,7 @@ impl UninitSlice {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut data = [0, 1, 2];
     /// let mut slice = &mut data[..];
@@ -193,7 +193,7 @@ impl UninitSlice {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut data = [0, 1, 2];
     /// let mut slice = &mut data[..];

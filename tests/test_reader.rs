@@ -3,7 +3,7 @@
 
 use std::io::{BufRead, Read};
 
-use bytes::Buf;
+use elems::Buf;
 
 #[test]
 fn read() {

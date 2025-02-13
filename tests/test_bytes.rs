@@ -1,6 +1,6 @@
 #![warn(rust_2018_idioms)]
 
-use bytes::{Buf, BufMut, Bytes, BytesMut};
+use elems::{Buf, BufMut, Bytes, BytesMut, Elems, ElemsMut};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
@@ -15,10 +15,10 @@ fn is_send<T: Send>() {}
 
 #[test]
 fn test_bounds() {
-    is_sync::<Bytes>();
-    is_sync::<BytesMut>();
-    is_send::<Bytes>();
-    is_send::<BytesMut>();
+    is_sync::<Elems>();
+    is_sync::<ElemsMut>();
+    is_send::<Elems>();
+    is_send::<ElemsMut>();
 }
 
 #[test]
@@ -26,32 +26,32 @@ fn test_layout() {
     use std::mem;
 
     assert_eq!(
-        mem::size_of::<Bytes>(),
+        mem::size_of::<Elems>(),
         mem::size_of::<usize>() * 4,
-        "Bytes size should be 4 words",
+        "Elems size should be 4 words",
     );
     assert_eq!(
-        mem::size_of::<BytesMut>(),
+        mem::size_of::<ElemsMut>(),
         mem::size_of::<usize>() * 4,
-        "BytesMut should be 4 words",
+        "ElemsMut should be 4 words",
     );
 
     assert_eq!(
-        mem::size_of::<Bytes>(),
-        mem::size_of::<Option<Bytes>>(),
-        "Bytes should be same size as Option<Bytes>",
+        mem::size_of::<Elems>(),
+        mem::size_of::<Option<Elems>>(),
+        "Elems should be same size as Option<Elems>",
     );
 
     assert_eq!(
-        mem::size_of::<BytesMut>(),
-        mem::size_of::<Option<BytesMut>>(),
-        "BytesMut should be same size as Option<BytesMut>",
+        mem::size_of::<ElemsMut>(),
+        mem::size_of::<Option<ElemsMut>>(),
+        "ElemsMut should be same size as Option<ElemsMut>",
     );
 }
 
 #[test]
 fn from_slice() {
-    let a = Bytes::from(&b"abcdefgh"[..]);
+    let a = Elems::from(&b"abcdefgh"[..]);
     assert_eq!(a, b"abcdefgh"[..]);
     assert_eq!(a, &b"abcdefgh"[..]);
     assert_eq!(a, Vec::from(&b"abcdefgh"[..]));
@@ -59,7 +59,7 @@ fn from_slice() {
     assert_eq!(&b"abcdefgh"[..], a);
     assert_eq!(Vec::from(&b"abcdefgh"[..]), a);
 
-    let a = BytesMut::from(&b"abcdefgh"[..]);
+    let a = ElemsMut::from(&b"abcdefgh"[..]);
     assert_eq!(a, b"abcdefgh"[..]);
     assert_eq!(a, &b"abcdefgh"[..]);
     assert_eq!(a, Vec::from(&b"abcdefgh"[..]));
@@ -70,12 +70,12 @@ fn from_slice() {
 
 #[test]
 fn fmt() {
-    let a = format!("{:?}", Bytes::from(&b"abcdefg"[..]));
+    let a = format!("{:?}", Elems::from(&b"abcdefg"[..]));
     let b = "b\"abcdefg\"";
 
     assert_eq!(a, b);
 
-    let a = format!("{:?}", BytesMut::from(&b"abcdefg"[..]));
+    let a = format!("{:?}", ElemsMut::from(&b"abcdefg"[..]));
     assert_eq!(a, b);
 }
 
@@ -85,44 +85,44 @@ fn fmt_write() {
     use std::iter::FromIterator;
     let s = String::from_iter((0..10).map(|_| "abcdefg"));
 
-    let mut a = BytesMut::with_capacity(64);
+    let mut a = ElemsMut::with_capacity(64);
     write!(a, "{}", &s[..64]).unwrap();
     assert_eq!(a, s[..64].as_bytes());
 
-    let mut b = BytesMut::with_capacity(64);
+    let mut b = ElemsMut::with_capacity(64);
     write!(b, "{}", &s[..32]).unwrap();
     write!(b, "{}", &s[32..64]).unwrap();
     assert_eq!(b, s[..64].as_bytes());
 
-    let mut c = BytesMut::with_capacity(64);
+    let mut c = ElemsMut::with_capacity(64);
     write!(c, "{}", s).unwrap();
     assert_eq!(c, s[..].as_bytes());
 }
 
 #[test]
 fn len() {
-    let a = Bytes::from(&b"abcdefg"[..]);
+    let a = Elems::from(&b"abcdefg"[..]);
     assert_eq!(a.len(), 7);
 
-    let a = BytesMut::from(&b"abcdefg"[..]);
+    let a = ElemsMut::from(&b"abcdefg"[..]);
     assert_eq!(a.len(), 7);
 
-    let a = Bytes::from(&b""[..]);
+    let a = Elems::from(&b""[..]);
     assert!(a.is_empty());
 
-    let a = BytesMut::from(&b""[..]);
+    let a = ElemsMut::from(&b""[..]);
     assert!(a.is_empty());
 }
 
 #[test]
 fn index() {
-    let a = Bytes::from(&b"hello world"[..]);
+    let a = Elems::from(&b"hello world"[..]);
     assert_eq!(a[0..5], *b"hello");
 }
 
 #[test]
 fn slice() {
-    let a = Bytes::from(&b"hello world"[..]);
+    let a = Elems::from(&b"hello world"[..]);
 
     let b = a.slice(3..5);
     assert_eq!(b, b"lo"[..]);
@@ -146,26 +146,26 @@ fn slice() {
 #[test]
 #[should_panic]
 fn slice_oob_1() {
-    let a = Bytes::from(&b"hello world"[..]);
+    let a = Elems::from(&b"hello world"[..]);
     a.slice(5..44);
 }
 
 #[test]
 #[should_panic]
 fn slice_oob_2() {
-    let a = Bytes::from(&b"hello world"[..]);
+    let a = Elems::from(&b"hello world"[..]);
     a.slice(44..49);
 }
 
 #[test]
 fn split_off() {
-    let mut hello = Bytes::from(&b"helloworld"[..]);
+    let mut hello = Elems::from(&b"helloworld"[..]);
     let world = hello.split_off(5);
 
     assert_eq!(hello, &b"hello"[..]);
     assert_eq!(world, &b"world"[..]);
 
-    let mut hello = BytesMut::from(&b"helloworld"[..]);
+    let mut hello = ElemsMut::from(&b"helloworld"[..]);
     let world = hello.split_off(5);
 
     assert_eq!(hello, &b"hello"[..]);
@@ -175,13 +175,13 @@ fn split_off() {
 #[test]
 #[should_panic]
 fn split_off_oob() {
-    let mut hello = Bytes::from(&b"helloworld"[..]);
+    let mut hello = Elems::from(&b"helloworld"[..]);
     let _ = hello.split_off(44);
 }
 
 #[test]
 fn split_off_uninitialized() {
-    let mut bytes = BytesMut::<u8>::with_capacity(1024);
+    let mut bytes = BytesMut::with_capacity(1024);
     let other = bytes.split_off(128);
 
     assert_eq!(bytes.len(), 0);
@@ -197,7 +197,7 @@ fn split_off_to_loop() {
 
     for i in 0..(s.len() + 1) {
         {
-            let mut bytes = Bytes::from(&s[..]);
+            let mut bytes = Elems::from(&s[..]);
             let off = bytes.split_off(i);
             assert_eq!(i, bytes.len());
             let mut sum = Vec::new();
@@ -206,7 +206,7 @@ fn split_off_to_loop() {
             assert_eq!(&s[..], &sum[..]);
         }
         {
-            let mut bytes = BytesMut::from(&s[..]);
+            let mut bytes = ElemsMut::from(&s[..]);
             let off = bytes.split_off(i);
             assert_eq!(i, bytes.len());
             let mut sum = Vec::new();
@@ -215,7 +215,7 @@ fn split_off_to_loop() {
             assert_eq!(&s[..], &sum[..]);
         }
         {
-            let mut bytes = Bytes::from(&s[..]);
+            let mut bytes = Elems::from(&s[..]);
             let off = bytes.split_to(i);
             assert_eq!(i, off.len());
             let mut sum = Vec::new();
@@ -224,7 +224,7 @@ fn split_off_to_loop() {
             assert_eq!(&s[..], &sum[..]);
         }
         {
-            let mut bytes = BytesMut::from(&s[..]);
+            let mut bytes = ElemsMut::from(&s[..]);
             let off = bytes.split_to(i);
             assert_eq!(i, off.len());
             let mut sum = Vec::new();
@@ -238,20 +238,20 @@ fn split_off_to_loop() {
 #[test]
 fn split_to_1() {
     // Static
-    let mut a = Bytes::from_static(SHORT);
+    let mut a = Elems::from_static(SHORT);
     let b = a.split_to(4);
 
     assert_eq!(SHORT[4..], a);
     assert_eq!(SHORT[..4], b);
 
     // Allocated
-    let mut a = Bytes::copy_from_slice(LONG);
+    let mut a = Elems::copy_from_slice(LONG);
     let b = a.split_to(4);
 
     assert_eq!(LONG[4..], a);
     assert_eq!(LONG[..4], b);
 
-    let mut a = Bytes::copy_from_slice(LONG);
+    let mut a = Elems::copy_from_slice(LONG);
     let b = a.split_to(30);
 
     assert_eq!(LONG[30..], a);
@@ -260,7 +260,7 @@ fn split_to_1() {
 
 #[test]
 fn split_to_2() {
-    let mut a = Bytes::from(LONG);
+    let mut a = Elems::from(LONG);
     assert_eq!(LONG, a);
 
     let b = a.split_to(1);
@@ -272,29 +272,29 @@ fn split_to_2() {
 #[test]
 #[should_panic]
 fn split_to_oob() {
-    let mut hello = Bytes::from(&b"helloworld"[..]);
+    let mut hello = Elems::from(&b"helloworld"[..]);
     let _ = hello.split_to(33);
 }
 
 #[test]
 #[should_panic]
 fn split_to_oob_mut() {
-    let mut hello = BytesMut::from(&b"helloworld"[..]);
+    let mut hello = ElemsMut::from(&b"helloworld"[..]);
     let _ = hello.split_to(33);
 }
 
 #[test]
 #[should_panic]
 fn split_to_uninitialized() {
-    let mut bytes = BytesMut::<u8>::with_capacity(1024);
+    let mut bytes = BytesMut::with_capacity(1024);
     let _other = bytes.split_to(128);
 }
 
 #[test]
 #[cfg_attr(not(panic = "unwind"), ignore)]
 fn split_off_to_at_gt_len() {
-    fn make_bytes() -> Bytes {
-        let mut bytes = BytesMut::with_capacity(100);
+    fn make_bytes() -> Elems {
+        let mut bytes = ElemsMut::with_capacity(100);
         bytes.put_slice(&[10, 20, 30, 40]);
         bytes.freeze()
     }
@@ -318,7 +318,7 @@ fn split_off_to_at_gt_len() {
 #[test]
 fn truncate() {
     let s = &b"helloworld"[..];
-    let mut hello = Bytes::from(s);
+    let mut hello = Elems::from(s);
     hello.truncate(15);
     assert_eq!(hello, s);
     hello.truncate(10);
@@ -330,7 +330,7 @@ fn truncate() {
 #[test]
 fn freeze_clone_shared() {
     let s = &b"abcdefgh"[..];
-    let b = BytesMut::from(s).split().freeze();
+    let b = ElemsMut::from(s).split().freeze();
     assert_eq!(b, s);
     let c = b.clone();
     assert_eq!(c, s);
@@ -339,7 +339,7 @@ fn freeze_clone_shared() {
 #[test]
 fn freeze_clone_unique() {
     let s = &b"abcdefgh"[..];
-    let b = BytesMut::from(s).freeze();
+    let b = ElemsMut::from(s).freeze();
     assert_eq!(b, s);
     let c = b.clone();
     assert_eq!(c, s);
@@ -348,19 +348,19 @@ fn freeze_clone_unique() {
 #[test]
 fn freeze_after_advance() {
     let s = &b"abcdefgh"[..];
-    let mut b = BytesMut::from(s);
+    let mut b = ElemsMut::from(s);
     b.advance(1);
     assert_eq!(b, s[1..]);
     let b = b.freeze();
     // Verify fix for #352. Previously, freeze would ignore the start offset
-    // for BytesMuts in Vec mode.
+    // for ElemsMuts in Vec mode.
     assert_eq!(b, s[1..]);
 }
 
 #[test]
 fn freeze_after_advance_arc() {
     let s = &b"abcdefgh"[..];
-    let mut b = BytesMut::from(s);
+    let mut b = ElemsMut::from(s);
     // Make b Arc
     let _ = b.split_to(0);
     b.advance(1);
@@ -372,7 +372,7 @@ fn freeze_after_advance_arc() {
 #[test]
 fn freeze_after_split_to() {
     let s = &b"abcdefgh"[..];
-    let mut b = BytesMut::from(s);
+    let mut b = ElemsMut::from(s);
     let _ = b.split_to(1);
     assert_eq!(b, s[1..]);
     let b = b.freeze();
@@ -382,7 +382,7 @@ fn freeze_after_split_to() {
 #[test]
 fn freeze_after_truncate() {
     let s = &b"abcdefgh"[..];
-    let mut b = BytesMut::from(s);
+    let mut b = ElemsMut::from(s);
     b.truncate(7);
     assert_eq!(b, s[..7]);
     let b = b.freeze();
@@ -392,7 +392,7 @@ fn freeze_after_truncate() {
 #[test]
 fn freeze_after_truncate_arc() {
     let s = &b"abcdefgh"[..];
-    let mut b = BytesMut::from(s);
+    let mut b = ElemsMut::from(s);
     // Make b Arc
     let _ = b.split_to(0);
     b.truncate(7);
@@ -404,7 +404,7 @@ fn freeze_after_truncate_arc() {
 #[test]
 fn freeze_after_split_off() {
     let s = &b"abcdefgh"[..];
-    let mut b = BytesMut::from(s);
+    let mut b = ElemsMut::from(s);
     let _ = b.split_off(7);
     assert_eq!(b, s[..7]);
     let b = b.freeze();
@@ -413,7 +413,7 @@ fn freeze_after_split_off() {
 
 #[test]
 fn fns_defined_for_bytes_mut() {
-    let mut bytes = BytesMut::from(&b"hello world"[..]);
+    let mut bytes = ElemsMut::from(&b"hello world"[..]);
 
     let _ = bytes.as_ptr();
     let _ = bytes.as_mut_ptr();
@@ -426,12 +426,12 @@ fn fns_defined_for_bytes_mut() {
 #[test]
 fn reserve_convert() {
     // Vec -> Vec
-    let mut bytes = BytesMut::from(LONG);
+    let mut bytes = ElemsMut::from(LONG);
     bytes.reserve(64);
     assert_eq!(bytes.capacity(), LONG.len() + 64);
 
     // Arc -> Vec
-    let mut bytes = BytesMut::from(LONG);
+    let mut bytes = ElemsMut::from(LONG);
     let a = bytes.split_to(30);
 
     bytes.reserve(128);
@@ -442,7 +442,7 @@ fn reserve_convert() {
 
 #[test]
 fn reserve_growth() {
-    let mut bytes = BytesMut::with_capacity(64);
+    let mut bytes = ElemsMut::with_capacity(64);
     bytes.put("hello world".as_bytes());
     let _ = bytes.split();
 
@@ -452,7 +452,7 @@ fn reserve_growth() {
 
 #[test]
 fn reserve_allocates_at_least_original_capacity() {
-    let mut bytes = BytesMut::with_capacity(1024);
+    let mut bytes = ElemsMut::with_capacity(1024);
 
     for i in 0..1020 {
         bytes.put_u8(i as u8);
@@ -469,7 +469,7 @@ fn reserve_allocates_at_least_original_capacity() {
 fn reserve_max_original_capacity_value() {
     const SIZE: usize = 128 * 1024;
 
-    let mut bytes = BytesMut::with_capacity(SIZE);
+    let mut bytes = ElemsMut::with_capacity(SIZE);
 
     for _ in 0..SIZE {
         bytes.put_u8(0u8);
@@ -483,7 +483,7 @@ fn reserve_max_original_capacity_value() {
 
 #[test]
 fn reserve_vec_recycling() {
-    let mut bytes = BytesMut::with_capacity(16);
+    let mut bytes = ElemsMut::with_capacity(16);
     assert_eq!(bytes.capacity(), 16);
     let addr = bytes.as_ptr() as usize;
     bytes.put("0123456789012345".as_bytes());
@@ -497,7 +497,7 @@ fn reserve_vec_recycling() {
 
 #[test]
 fn reserve_in_arc_unique_does_not_overallocate() {
-    let mut bytes = BytesMut::<u8>::with_capacity(1000);
+    let mut bytes = BytesMut::with_capacity(1000);
     let _ = bytes.split();
 
     // now bytes is Arc and refcount == 1
@@ -509,7 +509,7 @@ fn reserve_in_arc_unique_does_not_overallocate() {
 
 #[test]
 fn reserve_in_arc_unique_doubles() {
-    let mut bytes = BytesMut::<u8>::with_capacity(1000);
+    let mut bytes = BytesMut::with_capacity(1000);
     let _ = bytes.split();
 
     // now bytes is Arc and refcount == 1
@@ -521,7 +521,7 @@ fn reserve_in_arc_unique_doubles() {
 
 #[test]
 fn reserve_in_arc_unique_does_not_overallocate_after_split() {
-    let mut bytes = BytesMut::from(LONG);
+    let mut bytes = ElemsMut::from(LONG);
     let orig_capacity = bytes.capacity();
     drop(bytes.split_off(LONG.len() / 2));
 
@@ -534,7 +534,7 @@ fn reserve_in_arc_unique_does_not_overallocate_after_split() {
 
 #[test]
 fn reserve_in_arc_unique_does_not_overallocate_after_multiple_splits() {
-    let mut bytes = BytesMut::from(LONG);
+    let mut bytes = ElemsMut::from(LONG);
     let orig_capacity = bytes.capacity();
     for _ in 0..10 {
         drop(bytes.split_off(LONG.len() / 2));
@@ -549,7 +549,7 @@ fn reserve_in_arc_unique_does_not_overallocate_after_multiple_splits() {
 
 #[test]
 fn reserve_in_arc_nonunique_does_not_overallocate() {
-    let mut bytes = BytesMut::<u8>::with_capacity(1000);
+    let mut bytes = BytesMut::with_capacity(1000);
     let _copy = bytes.split();
 
     // now bytes is Arc and refcount == 2
@@ -559,12 +559,12 @@ fn reserve_in_arc_nonunique_does_not_overallocate() {
     assert_eq!(2001, bytes.capacity());
 }
 
-/// This function tests `BytesMut::reserve_inner`, where `BytesMut` holds
+/// This function tests `ElemsMut::reserve_inner`, where `ElemsMut` holds
 /// a unique reference to the shared vector and decide to reuse it
 /// by reallocating the `Vec`.
 #[test]
 fn reserve_shared_reuse() {
-    let mut bytes = BytesMut::with_capacity(1000);
+    let mut bytes = ElemsMut::with_capacity(1000);
     bytes.put_slice(b"Hello, World!");
     drop(bytes.split());
 
@@ -580,7 +580,7 @@ fn reserve_shared_reuse() {
 
 #[test]
 fn extend_mut() {
-    let mut bytes = BytesMut::with_capacity(0);
+    let mut bytes = ElemsMut::with_capacity(0);
     bytes.extend(LONG);
     assert_eq!(*bytes, LONG[..]);
 }
@@ -588,7 +588,7 @@ fn extend_mut() {
 #[test]
 fn extend_from_slice_mut() {
     for &i in &[3, 34] {
-        let mut bytes = BytesMut::new();
+        let mut bytes = ElemsMut::new();
         bytes.extend_from_slice(&LONG[..i]);
         bytes.extend_from_slice(&LONG[i..]);
         assert_eq!(LONG[..], *bytes);
@@ -597,8 +597,8 @@ fn extend_from_slice_mut() {
 
 #[test]
 fn extend_mut_from_bytes() {
-    let mut bytes = BytesMut::with_capacity(0);
-    bytes.extend([Bytes::from(LONG)]);
+    let mut bytes = ElemsMut::with_capacity(0);
+    bytes.extend([Elems::from(LONG)]);
     assert_eq!(*bytes, LONG[..]);
 }
 
@@ -619,14 +619,14 @@ fn extend_past_lower_limit_of_size_hint() {
         }
     }
 
-    let mut bytes = BytesMut::with_capacity(5);
+    let mut bytes = ElemsMut::with_capacity(5);
     bytes.extend(Iter(std::iter::repeat(0).take(10)));
     assert_eq!(bytes.len(), 10);
 }
 
 #[test]
 fn extend_mut_without_size_hint() {
-    let mut bytes = BytesMut::with_capacity(0);
+    let mut bytes = ElemsMut::with_capacity(0);
     let mut long_iter = LONG.iter();
 
     // Use iter::from_fn since it doesn't know a size_hint
@@ -636,7 +636,7 @@ fn extend_mut_without_size_hint() {
 
 #[test]
 fn from_static() {
-    let mut a = Bytes::from_static(b"ab");
+    let mut a = Elems::from_static(b"ab");
     let b = a.split_off(1);
 
     assert_eq!(a, b"a"[..]);
@@ -645,14 +645,14 @@ fn from_static() {
 
 #[test]
 fn advance_static() {
-    let mut a = Bytes::from_static(b"hello world");
+    let mut a = Elems::from_static(b"hello world");
     a.advance(6);
     assert_eq!(a, &b"world"[..]);
 }
 
 #[test]
 fn advance_vec() {
-    let mut a = Bytes::from(b"hello world boooo yah world zomg wat wat".to_vec());
+    let mut a = Elems::from(b"hello world boooo yah world zomg wat wat".to_vec());
     a.advance(16);
     assert_eq!(a, b"o yah world zomg wat wat"[..]);
 
@@ -665,7 +665,7 @@ fn advance_vec() {
 
 #[test]
 fn advance_bytes_mut() {
-    let mut a = BytesMut::from("hello world boooo yah world zomg wat wat");
+    let mut a = ElemsMut::from("hello world boooo yah world zomg wat wat");
     a.advance(16);
     assert_eq!(a, b"o yah world zomg wat wat"[..]);
 
@@ -680,7 +680,7 @@ fn advance_bytes_mut() {
     assert_eq!(a, b"d zomg wat wat"[..]);
 }
 
-// Ensures BytesMut::advance reduces always capacity
+// Ensures ElemsMut::advance reduces always capacity
 //
 // See https://github.com/tokio-rs/bytes/issues/725
 #[test]
@@ -691,14 +691,14 @@ fn advance_bytes_mut_remaining_capacity() {
         for len in 0..=capacity {
             for advance in 0..=len {
                 eprintln!("testing capacity={capacity}, len={len}, advance={advance}");
-                let mut buf = BytesMut::with_capacity(capacity);
+                let mut buf = ElemsMut::with_capacity(capacity);
 
                 buf.resize(len, 42);
                 assert_eq!(buf.len(), len, "resize should write `len` bytes");
                 assert_eq!(
                     buf.remaining(),
                     len,
-                    "Buf::remaining() should equal BytesMut::len"
+                    "Buf::remaining() should equal ElemsMut::len"
                 );
 
                 buf.advance(advance);
@@ -720,7 +720,7 @@ fn advance_bytes_mut_remaining_capacity() {
 #[test]
 #[should_panic]
 fn advance_past_len() {
-    let mut a = BytesMut::from("hello world");
+    let mut a = ElemsMut::from("hello world");
     a.advance(20);
 }
 
@@ -739,7 +739,7 @@ fn stress() {
 
     for i in 0..ITERS {
         let data = [i as u8; 256];
-        let buf = Arc::new(Bytes::copy_from_slice(&data[..]));
+        let buf = Arc::new(Elems::copy_from_slice(&data[..]));
 
         let barrier = Arc::new(Barrier::new(THREADS));
         let mut joins = Vec::with_capacity(THREADS);
@@ -750,7 +750,7 @@ fn stress() {
 
             joins.push(thread::spawn(move || {
                 c.wait();
-                let buf: Bytes = (*buf).clone();
+                let buf: Elems = (*buf).clone();
                 drop(buf);
             }));
         }
@@ -765,18 +765,18 @@ fn stress() {
 
 #[test]
 fn partial_eq_bytesmut() {
-    let bytes = Bytes::from(&b"The quick red fox"[..]);
-    let bytesmut = BytesMut::from(&b"The quick red fox"[..]);
+    let bytes = Elems::from(&b"The quick red fox"[..]);
+    let bytesmut = ElemsMut::from(&b"The quick red fox"[..]);
     assert!(bytes == bytesmut);
     assert!(bytesmut == bytes);
-    let bytes2 = Bytes::from(&b"Jumped over the lazy brown dog"[..]);
+    let bytes2 = Elems::from(&b"Jumped over the lazy brown dog"[..]);
     assert!(bytes2 != bytesmut);
     assert!(bytesmut != bytes2);
 }
 
 #[test]
 fn bytes_mut_unsplit_basic() {
-    let mut buf = BytesMut::with_capacity(64);
+    let mut buf = ElemsMut::with_capacity(64);
     buf.extend_from_slice(b"aaabbbcccddd");
 
     let splitted = buf.split_off(6);
@@ -789,11 +789,11 @@ fn bytes_mut_unsplit_basic() {
 
 #[test]
 fn bytes_mut_unsplit_empty_other() {
-    let mut buf = BytesMut::with_capacity(64);
+    let mut buf = ElemsMut::with_capacity(64);
     buf.extend_from_slice(b"aaabbbcccddd");
 
     // empty other
-    let other = BytesMut::new();
+    let other = ElemsMut::new();
 
     buf.unsplit(other);
     assert_eq!(b"aaabbbcccddd", &buf[..]);
@@ -802,9 +802,9 @@ fn bytes_mut_unsplit_empty_other() {
 #[test]
 fn bytes_mut_unsplit_empty_self() {
     // empty self
-    let mut buf = BytesMut::new();
+    let mut buf = ElemsMut::new();
 
-    let mut other = BytesMut::with_capacity(64);
+    let mut other = ElemsMut::with_capacity(64);
     other.extend_from_slice(b"aaabbbcccddd");
 
     buf.unsplit(other);
@@ -813,7 +813,7 @@ fn bytes_mut_unsplit_empty_self() {
 
 #[test]
 fn bytes_mut_unsplit_other_keeps_capacity() {
-    let mut buf = BytesMut::with_capacity(64);
+    let mut buf = ElemsMut::with_capacity(64);
     buf.extend_from_slice(b"aabb");
 
     // non empty other created "from" buf
@@ -826,7 +826,7 @@ fn bytes_mut_unsplit_other_keeps_capacity() {
 
 #[test]
 fn bytes_mut_unsplit_empty_other_keeps_capacity() {
-    let mut buf = BytesMut::with_capacity(64);
+    let mut buf = ElemsMut::with_capacity(64);
     buf.extend_from_slice(b"aabbccddee");
 
     // empty other created "from" buf
@@ -838,12 +838,12 @@ fn bytes_mut_unsplit_empty_other_keeps_capacity() {
 
 #[test]
 fn bytes_mut_unsplit_arc_different() {
-    let mut buf = BytesMut::with_capacity(64);
+    let mut buf = ElemsMut::with_capacity(64);
     buf.extend_from_slice(b"aaaabbbbeeee");
 
     let _ = buf.split_off(8); //arc
 
-    let mut buf2 = BytesMut::with_capacity(64);
+    let mut buf2 = ElemsMut::with_capacity(64);
     buf2.extend_from_slice(b"ccccddddeeee");
 
     let _ = buf2.split_off(8); //arc
@@ -854,7 +854,7 @@ fn bytes_mut_unsplit_arc_different() {
 
 #[test]
 fn bytes_mut_unsplit_arc_non_contiguous() {
-    let mut buf = BytesMut::with_capacity(64);
+    let mut buf = ElemsMut::with_capacity(64);
     buf.extend_from_slice(b"aaaabbbbeeeeccccdddd");
 
     let mut buf2 = buf.split_off(8); //arc
@@ -867,7 +867,7 @@ fn bytes_mut_unsplit_arc_non_contiguous() {
 
 #[test]
 fn bytes_mut_unsplit_two_split_offs() {
-    let mut buf = BytesMut::with_capacity(64);
+    let mut buf = ElemsMut::with_capacity(64);
     buf.extend_from_slice(b"aaaabbbbccccdddd");
 
     let mut buf2 = buf.split_off(8); //arc
@@ -884,7 +884,7 @@ fn from_iter_no_size_hint() {
 
     let mut expect = vec![];
 
-    let actual: Bytes = iter::repeat(b'x')
+    let actual: Elems = iter::repeat(b'x')
         .scan(100, |cnt, item| {
             if *cnt >= 1 {
                 *cnt -= 1;
@@ -899,7 +899,7 @@ fn from_iter_no_size_hint() {
     assert_eq!(&actual[..], &expect[..]);
 }
 
-fn test_slice_ref(bytes: &Bytes, start: usize, end: usize, expected: &[u8]) {
+fn test_slice_ref(bytes: &Elems, start: usize, end: usize, expected: &[u8]) {
     let slice = &(bytes.as_ref()[start..end]);
     let sub = bytes.slice_ref(slice);
     assert_eq!(&sub[..], expected);
@@ -907,7 +907,7 @@ fn test_slice_ref(bytes: &Bytes, start: usize, end: usize, expected: &[u8]) {
 
 #[test]
 fn slice_ref_works() {
-    let bytes = Bytes::from(&b"012345678"[..]);
+    let bytes = Elems::from(&b"012345678"[..]);
 
     test_slice_ref(&bytes, 0, 0, b"");
     test_slice_ref(&bytes, 0, 3, b"012");
@@ -918,7 +918,7 @@ fn slice_ref_works() {
 
 #[test]
 fn slice_ref_empty() {
-    let bytes = Bytes::from(&b""[..]);
+    let bytes = Elems::from(&b""[..]);
     let slice = &(bytes.as_ref()[0..0]);
 
     let sub = bytes.slice_ref(slice);
@@ -927,18 +927,18 @@ fn slice_ref_empty() {
 
 #[test]
 fn slice_ref_empty_subslice() {
-    let bytes = Bytes::from(&b"abcde"[..]);
+    let bytes = Elems::from(&b"abcde"[..]);
     let subbytes = bytes.slice(0..0);
     let slice = &subbytes[..];
     // The `slice` object is derived from the original `bytes` object
     // so `slice_ref` should work.
-    assert_eq!(Bytes::new(), bytes.slice_ref(slice));
+    assert_eq!(Elems::new(), bytes.slice_ref(slice));
 }
 
 #[test]
 #[should_panic]
 fn slice_ref_catches_not_a_subset() {
-    let bytes = Bytes::from(&b"012345678"[..]);
+    let bytes = Elems::from(&b"012345678"[..]);
     let slice = &b"012345"[0..4];
 
     bytes.slice_ref(slice);
@@ -946,23 +946,23 @@ fn slice_ref_catches_not_a_subset() {
 
 #[test]
 fn slice_ref_not_an_empty_subset() {
-    let bytes = Bytes::from(&b"012345678"[..]);
+    let bytes = Elems::from(&b"012345678"[..]);
     let slice = &b""[0..0];
 
-    assert_eq!(Bytes::new(), bytes.slice_ref(slice));
+    assert_eq!(Elems::new(), bytes.slice_ref(slice));
 }
 
 #[test]
 fn empty_slice_ref_not_an_empty_subset() {
-    let bytes = Bytes::new();
+    let bytes = Elems::new();
     let slice = &b"some other slice"[0..0];
 
-    assert_eq!(Bytes::new(), bytes.slice_ref(slice));
+    assert_eq!(Elems::new(), bytes.slice_ref(slice));
 }
 
 #[test]
 fn bytes_buf_mut_advance() {
-    let mut bytes = BytesMut::with_capacity(1024);
+    let mut bytes = ElemsMut::with_capacity(1024);
 
     unsafe {
         let ptr = bytes.chunk_mut().as_mut_ptr();
@@ -984,8 +984,8 @@ fn bytes_buf_mut_advance() {
 
 #[test]
 fn bytes_buf_mut_reuse_when_fully_consumed() {
-    use bytes::{Buf, BytesMut};
-    let mut buf = BytesMut::new();
+    use elems::{Buf, ElemsMut};
+    let mut buf = ElemsMut::new();
     buf.reserve(8192);
     buf.extend_from_slice(&[0u8; 100][..]);
 
@@ -1001,7 +1001,7 @@ fn bytes_buf_mut_reuse_when_fully_consumed() {
 #[test]
 #[should_panic]
 fn bytes_reserve_overflow() {
-    let mut bytes = BytesMut::with_capacity(1024);
+    let mut bytes = ElemsMut::with_capacity(1024);
     bytes.put_slice(b"hello world");
 
     bytes.reserve(usize::MAX);
@@ -1011,12 +1011,12 @@ fn bytes_reserve_overflow() {
 fn bytes_with_capacity_but_empty() {
     // See https://github.com/tokio-rs/bytes/issues/340
     let vec = Vec::with_capacity(1);
-    let _ = Bytes::<u8>::from(vec);
+    let _ = Bytes::from(vec);
 }
 
 #[test]
 fn bytes_put_bytes() {
-    let mut bytes = BytesMut::new();
+    let mut bytes = ElemsMut::new();
     bytes.put_u8(17);
     bytes.put_bytes(19, 2);
     assert_eq!([17, 19, 19], bytes.as_ref());
@@ -1026,7 +1026,7 @@ fn bytes_put_bytes() {
 fn box_slice_empty() {
     // See https://github.com/tokio-rs/bytes/issues/340
     let empty: Box<[u8]> = Default::default();
-    let b = Bytes::from(empty);
+    let b = Elems::from(empty);
     assert!(b.is_empty());
 }
 
@@ -1035,14 +1035,14 @@ fn bytes_into_vec() {
     // Test kind == KIND_VEC
     let content = b"helloworld";
 
-    let mut bytes = BytesMut::new();
+    let mut bytes = ElemsMut::new();
     bytes.put_slice(content);
 
     let vec: Vec<u8> = bytes.into();
     assert_eq!(&vec, content);
 
     // Test kind == KIND_ARC, shared.is_unique() == True
-    let mut bytes = BytesMut::new();
+    let mut bytes = ElemsMut::new();
     bytes.put_slice(b"abcdewe23");
     bytes.put_slice(content);
 
@@ -1056,7 +1056,7 @@ fn bytes_into_vec() {
     // Test kind == KIND_ARC, shared.is_unique() == False
     let prefix = b"abcdewe23";
 
-    let mut bytes = BytesMut::new();
+    let mut bytes = ElemsMut::new();
     bytes.put_slice(prefix);
     bytes.put_slice(content);
 
@@ -1071,14 +1071,14 @@ fn bytes_into_vec() {
 fn test_bytes_into_vec() {
     // Test STATIC_VTABLE.to_vec
     let bs = b"1b23exfcz3r";
-    let vec: Vec<u8> = Bytes::from_static(bs).into();
+    let vec: Vec<u8> = Elems::from_static(bs).into();
     assert_eq!(&*vec, bs);
 
     // Test bytes_mut.SHARED_VTABLE.to_vec impl
     eprintln!("1");
-    let mut bytes_mut: BytesMut = bs[..].into();
+    let mut bytes_mut: ElemsMut = bs[..].into();
 
-    // Set kind to KIND_ARC so that after freeze, Bytes will use bytes_mut.SHARED_VTABLE
+    // Set kind to KIND_ARC so that after freeze, Elems will use bytes_mut.SHARED_VTABLE
     eprintln!("2");
     drop(bytes_mut.split_off(bs.len()));
 
@@ -1098,7 +1098,7 @@ fn test_bytes_into_vec() {
     assert_eq!(&*Vec::from(b1), bs);
 
     // Test bytes_mut.SHARED_VTABLE.to_vec impl where offset != 0
-    let mut bytes_mut1: BytesMut = bs[..].into();
+    let mut bytes_mut1: ElemsMut = bs[..].into();
     let bytes_mut2 = bytes_mut1.split_off(9);
 
     let b1 = bytes_mut1.freeze();
@@ -1113,16 +1113,16 @@ fn test_bytes_into_vec_promotable_even() {
     let vec = vec![33u8; 1024];
 
     // Test cases where kind == KIND_VEC
-    let b1 = Bytes::from(vec.clone());
+    let b1 = Elems::from(vec.clone());
     assert_eq!(Vec::from(b1), vec);
 
     // Test cases where kind == KIND_ARC, ref_cnt == 1
-    let b1 = Bytes::from(vec.clone());
+    let b1 = Elems::from(vec.clone());
     drop(b1.clone());
     assert_eq!(Vec::from(b1), vec);
 
     // Test cases where kind == KIND_ARC, ref_cnt == 2
-    let b1 = Bytes::from(vec.clone());
+    let b1 = Elems::from(vec.clone());
     let b2 = b1.clone();
     assert_eq!(Vec::from(b1), vec);
 
@@ -1130,7 +1130,7 @@ fn test_bytes_into_vec_promotable_even() {
     assert_eq!(Vec::from(b2), vec);
 
     // Test cases where offset != 0
-    let mut b1 = Bytes::from(vec.clone());
+    let mut b1 = Elems::from(vec.clone());
     let b2 = b1.split_off(20);
 
     assert_eq!(Vec::from(b2), vec[20..]);
@@ -1141,12 +1141,12 @@ fn test_bytes_into_vec_promotable_even() {
 fn test_bytes_vec_conversion() {
     let mut vec = Vec::<u8>::with_capacity(10);
     vec.extend(b"abcdefg");
-    let b = Bytes::from(vec);
+    let b = Elems::from(vec);
     let v = Vec::from(b);
     assert_eq!(v.len(), 7);
     assert_eq!(v.capacity(), 10);
 
-    let mut b = Bytes::from(v);
+    let mut b = Elems::from(v);
     b.advance(1);
     let v = Vec::from(b);
     assert_eq!(v.len(), 6);
@@ -1156,14 +1156,14 @@ fn test_bytes_vec_conversion() {
 
 #[test]
 fn test_bytes_mut_conversion() {
-    let mut b1 = BytesMut::with_capacity(10);
+    let mut b1 = ElemsMut::with_capacity(10);
     b1.extend(b"abcdefg");
-    let b2 = Bytes::from(b1);
+    let b2 = Elems::from(b1);
     let v = Vec::from(b2);
     assert_eq!(v.len(), 7);
     assert_eq!(v.capacity(), 10);
 
-    let mut b = Bytes::from(v);
+    let mut b = Elems::from(v);
     b.advance(1);
     let v = Vec::from(b);
     assert_eq!(v.len(), 6);
@@ -1177,28 +1177,28 @@ fn test_bytes_capacity_len() {
         for len in 0..=cap {
             let mut v = Vec::with_capacity(cap);
             v.resize(len, 0);
-            let _ = Bytes::from(v);
+            let _ = Elems::from(v);
         }
     }
 }
 
 #[test]
 fn static_is_unique() {
-    let b = Bytes::from_static(LONG);
+    let b = Elems::from_static(LONG);
     assert!(!b.is_unique());
 }
 
 #[test]
 fn vec_is_unique() {
     let v: Vec<u8> = LONG.to_vec();
-    let b = Bytes::from(v);
+    let b = Elems::from(v);
     assert!(b.is_unique());
 }
 
 #[test]
 fn arc_is_unique() {
     let v: Vec<u8> = LONG.to_vec();
-    let b = Bytes::from(v);
+    let b = Elems::from(v);
     let c = b.clone();
     assert!(!b.is_unique());
     drop(c);
@@ -1208,7 +1208,7 @@ fn arc_is_unique() {
 #[test]
 fn shared_is_unique() {
     let v: Vec<u8> = LONG.to_vec();
-    let b = Bytes::from(v);
+    let b = Elems::from(v);
     let c = b.clone();
     assert!(!c.is_unique());
     drop(b);
@@ -1217,7 +1217,7 @@ fn shared_is_unique() {
 
 #[test]
 fn mut_shared_is_unique() {
-    let mut b = BytesMut::from(LONG);
+    let mut b = ElemsMut::from(LONG);
     let c = b.split().freeze();
     assert!(!c.is_unique());
     drop(b);
@@ -1229,7 +1229,7 @@ fn test_bytesmut_from_bytes_static() {
     let bs = b"1b23exfcz3r";
 
     // Test STATIC_VTABLE.to_mut
-    let bytes_mut = BytesMut::from(Bytes::from_static(bs));
+    let bytes_mut = ElemsMut::from(Elems::from_static(bs));
     assert_eq!(bytes_mut, bs[..]);
 }
 
@@ -1239,8 +1239,8 @@ fn test_bytesmut_from_bytes_bytes_mut_vec() {
     let bs_long = b"1b23exfcz3r1b23exfcz3r";
 
     // Test case where kind == KIND_VEC
-    let mut bytes_mut: BytesMut = bs[..].into();
-    bytes_mut = BytesMut::from(bytes_mut.freeze());
+    let mut bytes_mut: ElemsMut = bs[..].into();
+    bytes_mut = ElemsMut::from(bytes_mut.freeze());
     assert_eq!(bytes_mut, bs[..]);
     bytes_mut.extend_from_slice(&bs[..]);
     assert_eq!(bytes_mut, bs_long[..]);
@@ -1250,20 +1250,20 @@ fn test_bytesmut_from_bytes_bytes_mut_vec() {
 fn test_bytesmut_from_bytes_bytes_mut_shared() {
     let bs = b"1b23exfcz3r";
 
-    // Set kind to KIND_ARC so that after freeze, Bytes will use bytes_mut.SHARED_VTABLE
-    let mut bytes_mut: BytesMut = bs[..].into();
+    // Set kind to KIND_ARC so that after freeze, Elems will use bytes_mut.SHARED_VTABLE
+    let mut bytes_mut: ElemsMut = bs[..].into();
     drop(bytes_mut.split_off(bs.len()));
 
     let b1 = bytes_mut.freeze();
     let b2 = b1.clone();
 
     // shared.is_unique() = False
-    let mut b1m = BytesMut::from(b1);
+    let mut b1m = ElemsMut::from(b1);
     assert_eq!(b1m, bs[..]);
     b1m[0] = b'9';
 
     // shared.is_unique() = True
-    let b2m = BytesMut::from(b2);
+    let b2m = ElemsMut::from(b2);
     assert_eq!(b2m, bs[..]);
 }
 
@@ -1272,14 +1272,14 @@ fn test_bytesmut_from_bytes_bytes_mut_offset() {
     let bs = b"1b23exfcz3r";
 
     // Test bytes_mut.SHARED_VTABLE.to_mut impl where offset != 0
-    let mut bytes_mut1: BytesMut = bs[..].into();
+    let mut bytes_mut1: ElemsMut = bs[..].into();
     let bytes_mut2 = bytes_mut1.split_off(9);
 
     let b1 = bytes_mut1.freeze();
     let b2 = bytes_mut2.freeze();
 
-    let b1m = BytesMut::from(b1);
-    let b2m = BytesMut::from(b2);
+    let b1m = ElemsMut::from(b1);
+    let b2m = ElemsMut::from(b2);
 
     assert_eq!(b2m, bs[9..]);
     assert_eq!(b1m, bs[..9]);
@@ -1290,8 +1290,8 @@ fn test_bytesmut_from_bytes_promotable_even_vec() {
     let vec = vec![33u8; 1024];
 
     // Test case where kind == KIND_VEC
-    let b1 = Bytes::from(vec.clone());
-    let b1m = BytesMut::from(b1);
+    let b1 = Elems::from(vec.clone());
+    let b1m = ElemsMut::from(b1);
     assert_eq!(b1m, vec);
 }
 
@@ -1300,9 +1300,9 @@ fn test_bytesmut_from_bytes_promotable_even_arc_1() {
     let vec = vec![33u8; 1024];
 
     // Test case where kind == KIND_ARC, ref_cnt == 1
-    let b1 = Bytes::from(vec.clone());
+    let b1 = Elems::from(vec.clone());
     drop(b1.clone());
-    let b1m = BytesMut::from(b1);
+    let b1m = ElemsMut::from(b1);
     assert_eq!(b1m, vec);
 }
 
@@ -1311,13 +1311,13 @@ fn test_bytesmut_from_bytes_promotable_even_arc_2() {
     let vec = vec![33u8; 1024];
 
     // Test case where kind == KIND_ARC, ref_cnt == 2
-    let b1 = Bytes::from(vec.clone());
+    let b1 = Elems::from(vec.clone());
     let b2 = b1.clone();
-    let b1m = BytesMut::from(b1);
+    let b1m = ElemsMut::from(b1);
     assert_eq!(b1m, vec);
 
     // Test case where vtable = SHARED_VTABLE, kind == KIND_ARC, ref_cnt == 1
-    let b2m = BytesMut::from(b2);
+    let b2m = ElemsMut::from(b2);
     assert_eq!(b2m, vec);
 }
 
@@ -1326,10 +1326,10 @@ fn test_bytesmut_from_bytes_promotable_even_arc_offset() {
     let vec = vec![33u8; 1024];
 
     // Test case where offset != 0
-    let mut b1 = Bytes::from(vec.clone());
+    let mut b1 = Elems::from(vec.clone());
     let b2 = b1.split_off(20);
-    let b1m = BytesMut::from(b1);
-    let b2m = BytesMut::from(b2);
+    let b1m = ElemsMut::from(b1);
+    let b2m = ElemsMut::from(b2);
 
     assert_eq!(b2m, vec[20..]);
     assert_eq!(b1m, vec[..20]);
@@ -1337,7 +1337,7 @@ fn test_bytesmut_from_bytes_promotable_even_arc_offset() {
 
 #[test]
 fn try_reclaim_empty() {
-    let mut buf = BytesMut::<u8>::new();
+    let mut buf = BytesMut::new();
     assert_eq!(false, buf.try_reclaim(6));
     buf.reserve(6);
     assert_eq!(true, buf.try_reclaim(6));
@@ -1345,7 +1345,7 @@ fn try_reclaim_empty() {
     assert!(cap >= 6);
     assert_eq!(false, buf.try_reclaim(cap + 1));
 
-    let mut buf = BytesMut::<u8>::new();
+    let mut buf = BytesMut::new();
     buf.reserve(6);
     let cap = buf.capacity();
     assert!(cap >= 6);
@@ -1358,7 +1358,7 @@ fn try_reclaim_empty() {
 
 #[test]
 fn try_reclaim_vec() {
-    let mut buf = BytesMut::with_capacity(6);
+    let mut buf = ElemsMut::with_capacity(6);
     buf.put_slice(b"abc");
     // Reclaiming a ludicrous amount of space should calmly return false
     assert_eq!(false, buf.try_reclaim(usize::MAX));
@@ -1377,7 +1377,7 @@ fn try_reclaim_vec() {
 
 #[test]
 fn try_reclaim_arc() {
-    let mut buf = BytesMut::with_capacity(6);
+    let mut buf = ElemsMut::with_capacity(6);
     buf.put_slice(b"abc");
     let x = buf.split().freeze();
     buf.put_slice(b"def");
@@ -1407,7 +1407,7 @@ fn try_reclaim_arc() {
 
 #[test]
 fn split_off_empty_addr() {
-    let mut buf = Bytes::from(vec![0; 1024]);
+    let mut buf = Elems::from(vec![0; 1024]);
 
     let ptr_start = buf.as_ptr();
     let ptr_end = ptr_start.wrapping_add(1024);
@@ -1427,7 +1427,7 @@ fn split_off_empty_addr() {
 
 #[test]
 fn split_to_empty_addr() {
-    let mut buf = Bytes::from(vec![0; 1024]);
+    let mut buf = Elems::from(vec![0; 1024]);
 
     let ptr_start = buf.as_ptr();
     let ptr_end = ptr_start.wrapping_add(1024);
@@ -1447,7 +1447,7 @@ fn split_to_empty_addr() {
 
 #[test]
 fn split_off_empty_addr_mut() {
-    let mut buf = BytesMut::from([0; 1024].as_slice());
+    let mut buf = ElemsMut::from([0; 1024].as_slice());
 
     let ptr_start = buf.as_ptr();
     let ptr_end = ptr_start.wrapping_add(1024);
@@ -1467,7 +1467,7 @@ fn split_off_empty_addr_mut() {
 
 #[test]
 fn split_to_empty_addr_mut() {
-    let mut buf = BytesMut::from([0; 1024].as_slice());
+    let mut buf = ElemsMut::from([0; 1024].as_slice());
 
     let ptr_start = buf.as_ptr();
     let ptr_end = ptr_start.wrapping_add(1024);
@@ -1536,7 +1536,7 @@ impl<const L: usize> Drop for OwnedTester<L> {
 
 #[test]
 fn owned_is_unique_always_false() {
-    let b1 = Bytes::from_owner([1, 2, 3, 4, 5, 6, 7]);
+    let b1 = Elems::from_owner([1, 2, 3, 4, 5, 6, 7]);
     assert!(!b1.is_unique()); // even if ref_cnt == 1
     let b2 = b1.clone();
     assert!(!b1.is_unique());
@@ -1548,7 +1548,7 @@ fn owned_is_unique_always_false() {
 #[test]
 fn owned_buf_sharing() {
     let buf = [1, 2, 3, 4, 5, 6, 7];
-    let b1 = Bytes::from_owner(buf);
+    let b1 = Elems::from_owner(buf);
     let b2 = b1.clone();
     assert_eq!(&buf[..], &b1[..]);
     assert_eq!(&buf[..], &b2[..]);
@@ -1559,7 +1559,7 @@ fn owned_buf_sharing() {
 
 #[test]
 fn owned_buf_slicing() {
-    let b1 = Bytes::from_owner(SHORT);
+    let b1 = Elems::from_owner(SHORT);
     assert_eq!(SHORT, &b1[..]);
     let b2 = b1.slice(1..(b1.len() - 1));
     assert_eq!(&SHORT[1..(SHORT.len() - 1)], b2);
@@ -1572,7 +1572,7 @@ fn owned_dropped_exactly_once() {
     let buf: [u8; 5] = [1, 2, 3, 4, 5];
     let drop_counter = SharedAtomicCounter::new();
     let owner = OwnedTester::new(buf, drop_counter.clone());
-    let b1 = Bytes::from_owner(owner);
+    let b1 = Elems::from_owner(owner);
     let b2 = b1.clone();
     assert_eq!(drop_counter.get(), 0);
     drop(b1);
@@ -1589,18 +1589,18 @@ fn owned_to_mut() {
     let buf: [u8; 10] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     let drop_counter = SharedAtomicCounter::new();
     let owner = OwnedTester::new(buf, drop_counter.clone());
-    let b1 = Bytes::from_owner(owner);
+    let b1 = Elems::from_owner(owner);
 
-    // Holding an owner will fail converting to a BytesMut,
+    // Holding an owner will fail converting to a ElemsMut,
     // even when the bytes instance has a ref_cnt == 1.
     let b1 = b1.try_into_mut().unwrap_err();
 
     // That said, it's still possible, just not cheap.
-    let bm1: BytesMut = b1.into();
+    let bm1: ElemsMut = b1.into();
     let new_buf = &bm1[..];
     assert_eq!(new_buf, &buf[..]);
 
-    // `.into::<BytesMut>()` has correctly dropped the owner
+    // `.into::<ElemsMut>()` has correctly dropped the owner
     assert_eq!(drop_counter.get(), 1);
 }
 
@@ -1609,7 +1609,7 @@ fn owned_to_vec() {
     let buf: [u8; 10] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     let drop_counter = SharedAtomicCounter::new();
     let owner = OwnedTester::new(buf, drop_counter.clone());
-    let b1 = Bytes::from_owner(owner);
+    let b1 = Elems::from_owner(owner);
 
     let v1 = b1.to_vec();
     assert_eq!(&v1[..], &buf[..]);
@@ -1628,7 +1628,7 @@ fn owned_safe_drop_on_as_ref_panic() {
     owner.panic_as_ref = true;
 
     let result = panic::catch_unwind(AssertUnwindSafe(|| {
-        let _ = Bytes::from_owner(owner);
+        let _ = Elems::from_owner(owner);
     }));
 
     assert!(result.is_err());

@@ -25,7 +25,7 @@ impl<T> Take<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use bytes::{Buf, BufMut};
+    /// use elems::{Buf, BufMut};
     ///
     /// let mut buf = b"hello world".take(2);
     /// let mut dst = vec![];
@@ -50,7 +50,7 @@ impl<T> Take<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let buf = b"hello world".take(2);
     ///
@@ -67,7 +67,7 @@ impl<T> Take<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use bytes::{Buf, BufMut};
+    /// use elems::{Buf, BufMut};
     ///
     /// let mut buf = b"hello world".take(2);
     /// let mut dst = vec![];
@@ -91,7 +91,7 @@ impl<T> Take<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = b"hello world".take(2);
     ///
@@ -113,7 +113,7 @@ impl<T> Take<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use bytes::{Buf, BufMut};
+    /// use elems::{Buf, BufMut};
     ///
     /// let mut buf = b"hello world".take(2);
     /// let mut dst = vec![];
@@ -148,7 +148,7 @@ impl<T: Buf> Buf for Take<T> {
         self.limit -= cnt;
     }
 
-    fn copy_to_bytes(&mut self, len: usize) -> crate::Bytes {
+    fn copy_to_bytes(&mut self, len: usize) -> crate::Elems {
         assert!(len <= self.remaining(), "`len` greater than remaining");
 
         let r = self.inner.copy_to_bytes(len);

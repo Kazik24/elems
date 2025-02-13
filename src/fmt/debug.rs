@@ -1,7 +1,7 @@
 use core::fmt::{Debug, Formatter, Result};
 
-use super::BytesRef;
-use crate::{Bytes, BytesMut};
+use super::ElemsRef;
+use crate::{Elems, ElemsMut};
 
 /// Alternative implementation of `std::fmt::Debug` for byte slice.
 ///
@@ -9,7 +9,7 @@ use crate::{Bytes, BytesMut};
 /// list of numbers. Since large amount of byte strings are in fact
 /// ASCII strings or contain a lot of ASCII strings (e. g. HTTP),
 /// it is convenient to print strings as ASCII when possible.
-impl Debug for BytesRef<'_> {
+impl Debug for ElemsRef<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "b\"")?;
         for &b in self.0 {
@@ -36,5 +36,5 @@ impl Debug for BytesRef<'_> {
     }
 }
 
-fmt_impl!(Debug, Bytes);
-fmt_impl!(Debug, BytesMut);
+fmt_impl!(Debug, Elems);
+fmt_impl!(Debug, ElemsMut);

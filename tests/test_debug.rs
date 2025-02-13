@@ -1,6 +1,6 @@
 #![warn(rust_2018_idioms)]
 
-use bytes::Bytes;
+use elems::Elems;
 
 #[test]
 fn fmt() {
@@ -31,5 +31,5 @@ fn fmt() {
         \\xf0\\xf1\\xf2\\xf3\\xf4\\xf5\\xf6\\xf7\
         \\xf8\\xf9\\xfa\\xfb\\xfc\\xfd\\xfe\\xff\"";
 
-    assert_eq!(expected, format!("{:?}", Bytes::from(vec)));
+    assert_eq!(expected, format!("{:?}", Elems::from(vec)));
 }

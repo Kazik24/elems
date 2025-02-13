@@ -16,12 +16,12 @@ use std::io::IoSlice;
 /// # Examples
 ///
 /// ```
-/// use bytes::{Bytes, Buf};
+/// use elems::{Elems, Buf};
 ///
 /// let mut buf = (&b"hello "[..])
 ///     .chain(&b"world"[..]);
 ///
-/// let full: Bytes = buf.copy_to_bytes(11);
+/// let full: Elems = buf.copy_to_bytes(11);
 /// assert_eq!(full[..], b"hello world"[..]);
 /// ```
 ///
@@ -43,7 +43,7 @@ impl<T, U> Chain<T, U> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let buf = (&b"hello"[..])
     ///     .chain(&b"world"[..]);
@@ -59,7 +59,7 @@ impl<T, U> Chain<T, U> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = (&b"hello"[..])
     ///     .chain(&b"world"[..]);
@@ -78,7 +78,7 @@ impl<T, U> Chain<T, U> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let buf = (&b"hello"[..])
     ///     .chain(&b"world"[..]);
@@ -94,7 +94,7 @@ impl<T, U> Chain<T, U> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let mut buf = (&b"hello "[..])
     ///     .chain(&b"world"[..]);
@@ -113,7 +113,7 @@ impl<T, U> Chain<T, U> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Buf;
+    /// use elems::Buf;
     ///
     /// let chain = (&b"hello"[..])
     ///     .chain(&b"world"[..]);
@@ -169,7 +169,7 @@ where
         n
     }
 
-    fn copy_to_bytes(&mut self, len: usize) -> crate::Bytes {
+    fn copy_to_bytes(&mut self, len: usize) -> crate::Elems {
         let a_rem = self.a.remaining();
         if a_rem >= len {
             self.a.copy_to_bytes(len)
@@ -180,7 +180,7 @@ where
                 len - a_rem <= self.b.remaining(),
                 "`len` greater than remaining"
             );
-            let mut ret = crate::BytesMut::with_capacity(len);
+            let mut ret = crate::ElemsMut::with_capacity(len);
             ret.put(&mut self.a);
             ret.put((&mut self.b).take(len - a_rem));
             ret.freeze()

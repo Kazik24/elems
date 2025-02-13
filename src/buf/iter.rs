@@ -7,9 +7,9 @@ use crate::Buf;
 /// Basic usage:
 ///
 /// ```
-/// use bytes::Bytes;
+/// use elems::Elems;
 ///
-/// let buf = Bytes::from(&b"abc"[..]);
+/// let buf = Elems::from(&b"abc"[..]);
 /// let mut iter = buf.into_iter();
 ///
 /// assert_eq!(iter.next(), Some(b'a'));
@@ -28,9 +28,9 @@ impl<T> IntoIter<T> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::Bytes;
+    /// use elems::Elems;
     ///
-    /// let buf = Bytes::from_static(b"abc");
+    /// let buf = Elems::from_static(b"abc");
     /// let mut iter = buf.into_iter();
     ///
     /// assert_eq!(iter.next(), Some(b'a'));
@@ -47,9 +47,9 @@ impl<T> IntoIter<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use bytes::{Buf, Bytes};
+    /// use elems::{Buf, Elems};
     ///
-    /// let buf = Bytes::from(&b"abc"[..]);
+    /// let buf = Elems::from(&b"abc"[..]);
     /// let mut iter = buf.into_iter();
     ///
     /// assert_eq!(iter.next(), Some(b'a'));
@@ -68,9 +68,9 @@ impl<T> IntoIter<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use bytes::{Buf, Bytes};
+    /// use elems::{Buf, Elems};
     ///
-    /// let buf = Bytes::from(&b"abc"[..]);
+    /// let buf = Elems::from(&b"abc"[..]);
     /// let mut iter = buf.into_iter();
     ///
     /// assert_eq!(iter.next(), Some(b'a'));
@@ -88,9 +88,9 @@ impl<T> IntoIter<T> {
     /// # Examples
     ///
     /// ```rust
-    /// use bytes::{Buf, BytesMut};
+    /// use elems::{Buf, ElemsMut};
     ///
-    /// let buf = BytesMut::from(&b"abc"[..]);
+    /// let buf = ElemsMut::from(&b"abc"[..]);
     /// let mut iter = buf.into_iter();
     ///
     /// assert_eq!(iter.next(), Some(b'a'));

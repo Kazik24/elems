@@ -1,6 +1,6 @@
 #![warn(rust_2018_idioms)]
 
-use ::bytes::{Buf, Bytes, BytesMut};
+use ::elems::{Buf, Elems, ElemsMut};
 use core::{cmp, mem};
 use std::collections::VecDeque;
 #[cfg(feature = "std")]
@@ -307,7 +307,7 @@ mod u8_slice {
 
 mod bytes {
     fn make_input(buf: &'static [u8]) -> impl Buf {
-        Bytes::from_static(buf)
+        Elems::from_static(buf)
     }
 
     buf_tests!(make_input);
@@ -315,7 +315,7 @@ mod bytes {
 
 mod bytes_mut {
     fn make_input(buf: &'static [u8]) -> impl Buf {
-        BytesMut::from(buf)
+        ElemsMut::from(buf)
     }
 
     buf_tests!(make_input);
@@ -369,7 +369,7 @@ mod cursor {
 
 mod box_bytes {
     fn make_input(buf: &'static [u8]) -> impl Buf {
-        Box::new(Bytes::from_static(buf))
+        Box::new(Elems::from_static(buf))
     }
 
     buf_tests!(make_input);

@@ -19,7 +19,7 @@ use alloc::{boxed::Box, vec::Vec};
 /// The simplest `BufMut` is a `Vec<u8>`.
 ///
 /// ```
-/// use bytes::BufMut;
+/// use elems::BufMut;
 ///
 /// let mut buf = vec![];
 ///
@@ -41,7 +41,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut dst = [0; 10];
     /// let mut buf = &mut dst[..];
@@ -76,7 +76,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = Vec::with_capacity(16);
     ///
@@ -113,7 +113,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut dst = [0; 5];
     /// let mut buf = &mut dst[..];
@@ -141,7 +141,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = Vec::with_capacity(16);
     ///
@@ -184,7 +184,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     ///
@@ -229,7 +229,7 @@ pub unsafe trait BufMut {
     /// `self` must have enough remaining capacity to contain all of `src`.
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut dst = [0; 6];
     ///
@@ -270,7 +270,7 @@ pub unsafe trait BufMut {
     /// `self` must have at least `cnt` remaining capacity.
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut dst = [0; 6];
     ///
@@ -315,7 +315,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_u8(0x01);
@@ -339,7 +339,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_i8(0x01);
@@ -363,7 +363,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_u16(0x0809);
@@ -386,7 +386,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_u16_le(0x0809);
@@ -409,7 +409,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_u16_ne(0x0809);
@@ -436,7 +436,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_i16(0x0809);
@@ -459,7 +459,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_i16_le(0x0809);
@@ -482,7 +482,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_i16_ne(0x0809);
@@ -509,7 +509,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_u32(0x0809A0A1);
@@ -532,7 +532,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_u32_le(0x0809A0A1);
@@ -555,7 +555,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_u32_ne(0x0809A0A1);
@@ -582,7 +582,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_i32(0x0809A0A1);
@@ -605,7 +605,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_i32_le(0x0809A0A1);
@@ -628,7 +628,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_i32_ne(0x0809A0A1);
@@ -655,7 +655,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_u64(0x0102030405060708);
@@ -678,7 +678,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_u64_le(0x0102030405060708);
@@ -701,7 +701,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_u64_ne(0x0102030405060708);
@@ -728,7 +728,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_i64(0x0102030405060708);
@@ -751,7 +751,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_i64_le(0x0102030405060708);
@@ -774,7 +774,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_i64_ne(0x0102030405060708);
@@ -801,7 +801,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_u128(0x01020304050607080910111213141516);
@@ -824,7 +824,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_u128_le(0x01020304050607080910111213141516);
@@ -847,7 +847,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_u128_ne(0x01020304050607080910111213141516);
@@ -874,7 +874,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_i128(0x01020304050607080910111213141516);
@@ -897,7 +897,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_i128_le(0x01020304050607080910111213141516);
@@ -920,7 +920,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_i128_ne(0x01020304050607080910111213141516);
@@ -947,7 +947,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_uint(0x010203, 3);
@@ -975,7 +975,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_uint_le(0x010203, 3);
@@ -1004,7 +1004,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_uint_ne(0x010203, 3);
@@ -1035,7 +1035,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_int(0x0504010203, 3);
@@ -1063,7 +1063,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_int_le(0x0504010203, 3);
@@ -1092,7 +1092,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_int_ne(0x010203, 3);
@@ -1124,7 +1124,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_f32(1.2f32);
@@ -1148,7 +1148,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_f32_le(1.2f32);
@@ -1172,7 +1172,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_f32_ne(1.2f32);
@@ -1200,7 +1200,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_f64(1.2f64);
@@ -1224,7 +1224,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_f64_le(1.2f64);
@@ -1248,7 +1248,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut buf = vec![];
     /// buf.put_f64_ne(1.2f64);
@@ -1273,7 +1273,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let arr = &mut [0u8; 128][..];
     /// assert_eq!(arr.remaining_mut(), 128);
@@ -1299,7 +1299,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     /// use std::io::Write;
     ///
     /// let mut buf = vec![].writer();
@@ -1329,7 +1329,7 @@ pub unsafe trait BufMut {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BufMut;
+    /// use elems::BufMut;
     ///
     /// let mut a = [0u8; 5];
     /// let mut b = [0u8; 6];

@@ -1,7 +1,7 @@
 #![warn(rust_2018_idioms)]
 
-use bytes::buf::Buf;
-use bytes::Bytes;
+use elems::buf::Buf;
+use elems::Elems;
 
 #[test]
 fn long_take() {
@@ -14,20 +14,20 @@ fn long_take() {
 
 #[test]
 fn take_copy_to_bytes() {
-    let mut abcd = Bytes::copy_from_slice(b"abcd");
+    let mut abcd = Elems::copy_from_slice(b"abcd");
     let abcd_ptr = abcd.as_ptr();
     let mut take = (&mut abcd).take(2);
     let a = take.copy_to_bytes(1);
-    assert_eq!(Bytes::copy_from_slice(b"a"), a);
+    assert_eq!(Elems::copy_from_slice(b"a"), a);
     // assert `to_bytes` did not allocate
     assert_eq!(abcd_ptr, a.as_ptr());
-    assert_eq!(Bytes::copy_from_slice(b"bcd"), abcd);
+    assert_eq!(Elems::copy_from_slice(b"bcd"), abcd);
 }
 
 #[test]
 #[should_panic]
 fn take_copy_to_bytes_panics() {
-    let abcd = Bytes::copy_from_slice(b"abcd");
+    let abcd = Elems::copy_from_slice(b"abcd");
     abcd.take(2).copy_to_bytes(3);
 }
 
@@ -35,7 +35,7 @@ fn take_copy_to_bytes_panics() {
 #[test]
 fn take_chunks_vectored() {
     fn chain() -> impl Buf {
-        Bytes::from([1, 2, 3].to_vec()).chain(Bytes::from([4, 5, 6].to_vec()))
+        Elems::from([1, 2, 3].to_vec()).chain(Elems::from([4, 5, 6].to_vec()))
     }
 
     {

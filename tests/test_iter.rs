@@ -1,10 +1,10 @@
 #![warn(rust_2018_idioms)]
 
-use bytes::{buf::IntoIter, Bytes};
+use elems::{buf::IntoIter, Elems};
 
 #[test]
 fn iter_len() {
-    let buf = Bytes::from_static(b"hello world");
+    let buf = Elems::from_static(b"hello world");
     let iter = IntoIter::new(buf);
 
     assert_eq!(iter.size_hint(), (11, Some(11)));
@@ -13,7 +13,7 @@ fn iter_len() {
 
 #[test]
 fn empty_iter_len() {
-    let buf = Bytes::new();
+    let buf = Elems::new();
     let iter = IntoIter::new(buf);
 
     assert_eq!(iter.size_hint(), (0, Some(0)));

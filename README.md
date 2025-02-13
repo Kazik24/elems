@@ -1,6 +1,9 @@
-# Bytes
+# Elems
 
-A utility library for working with bytes.
+Fork of [bytes crate](https://github.com/tokio-rs/bytes)
+
+A utility library for working with plain old data.
+
 
 [![Crates.io][crates-badge]][crates-url]
 [![Build Status][ci-badge]][ci-url]
@@ -14,29 +17,29 @@ A utility library for working with bytes.
 
 ## Usage
 
-To use `bytes`, first add this to your `Cargo.toml`:
+To use `elems`, first add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-bytes = "1"
+elems = "1"
 ```
 
 Next, add this to your crate:
 
 ```rust
-use bytes::{Bytes, BytesMut, Buf, BufMut};
+use elems::{Elems, ElemsMut, Buf, BufMut};
 ```
 
 ## no_std support
 
-To use `bytes` with no_std environment, disable the (enabled by default) `std` feature.
+To use `elems` with no_std environment, disable the (enabled by default) `std` feature.
 
 ```toml
 [dependencies]
-bytes = { version = "1", default-features = false }
+elems = { git = "https://github.com/Kazik24/elems.git", default-features = false }
 ```
 
-To use `bytes` with no_std environment without atomic CAS, such as thumbv6m, you also need to enable
+To use `elems` with no_std environment without atomic CAS, such as thumbv6m, you also need to enable
 the `extra-platforms` feature. See the [documentation for the `portable-atomic`
 crate](https://docs.rs/portable-atomic) for more information.
 
@@ -48,14 +51,14 @@ Serde support is optional and disabled by default. To enable use the feature `se
 
 ```toml
 [dependencies]
-bytes = { version = "1", features = ["serde"] }
+elems = { git = "https://github.com/Kazik24/elems.git", features = ["serde"] }
 ```
 
 The MSRV when `serde` feature is enabled depends on the MSRV of `serde`.
 
 ## Building documentation
 
-When building the `bytes` documentation the `docsrs` option should be used, otherwise
+When building the `elems` documentation the `docsrs` option should be used, otherwise
 feature gates will not be shown. This requires a nightly toolchain:
 
 ```
@@ -69,5 +72,5 @@ This project is licensed under the [MIT license](LICENSE).
 ### Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in `bytes` by you, shall be licensed as MIT, without any additional
+for inclusion in `elems` by you, shall be licensed as MIT, without any additional
 terms or conditions.

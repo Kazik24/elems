@@ -1,4 +1,3 @@
-use core::alloc::Layout;
 use core::iter::FromIterator;
 use core::marker::PhantomData;
 use core::mem::{self, ManuallyDrop, MaybeUninit};
@@ -15,35 +14,35 @@ use alloc::{
 };
 
 use crate::buf::{IntoIter, UninitSlice};
-use crate::bytes::{Pod, RawBytes, Vtable};
+use crate::bytes::{Pod, RawElems, Vtable};
 #[allow(unused)]
 use crate::loom::sync::atomic::AtomicMut;
 use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
-use crate::{offset_from, Buf, BufMut, Bytes, TryGetError};
+use crate::{offset_from, Buf, BufMut, Elems, TryGetError};
 
 /// A unique reference to a contiguous slice of memory.
 ///
-/// `BytesMut` represents a unique view into a potentially shared memory region.
-/// Given the uniqueness guarantee, owners of `BytesMut` handles are able to
+/// `ElemsMut` represents a unique view into a potentially shared memory region.
+/// Given the uniqueness guarantee, owners of `ElemsMut` handles are able to
 /// mutate the memory.
 ///
-/// `BytesMut` can be thought of as containing a `buf: Arc<Vec<u8>>`, an offset
-/// into `buf`, a slice length, and a guarantee that no other `BytesMut` for the
+/// `ElemsMut` can be thought of as containing a `buf: Arc<Vec<u8>>`, an offset
+/// into `buf`, a slice length, and a guarantee that no other `ElemsMut` for the
 /// same `buf` overlaps with its slice. That guarantee means that a write lock
 /// is not required.
 ///
 /// # Growth
 ///
-/// `BytesMut`'s `BufMut` implementation will implicitly grow its buffer as
+/// `ElemsMut`'s `BufMut` implementation will implicitly grow its buffer as
 /// necessary. However, explicitly reserving the required space up-front before
 /// a series of inserts will be more efficient.
 ///
 /// # Examples
 ///
 /// ```
-/// use bytes::{BytesMut, BufMut};
+/// use elems::{ElemsMut, BufMut};
 ///
-/// let mut buf = BytesMut::with_capacity(64);
+/// let mut buf = ElemsMut::with_capacity(64);
 ///
 /// buf.put_u8(b'h');
 /// buf.put_u8(b'e');
@@ -60,31 +59,34 @@ use crate::{offset_from, Buf, BufMut, Bytes, TryGetError};
 /// assert_eq!(&a[..], b"hello");
 /// assert_eq!(&b[..], b"hello");
 /// ```
-pub struct BytesMut<T: Pod = u8> {
+pub struct ElemsMut<T: Pod = u8> {
     ptr: NonNull<T>,
     len: usize,
     cap: usize,
     data: *mut Shared<T>,
 }
 
-pub(crate) struct RawBytesMut {
+/// Alias to [`ElemsMut<u8>`].
+pub type BytesMut = ElemsMut<u8>;
+
+pub(crate) struct RawElemsMut {
     ptr: NonNull<u8>,
     len: usize,
     cap: usize,
     data: *mut Shared<u8>,
 }
-impl RawBytesMut {
-    pub fn erase<T: Pod>(bytes: BytesMut<T>) -> RawBytesMut {
+impl RawElemsMut {
+    pub fn erase<T: Pod>(bytes: ElemsMut<T>) -> RawElemsMut {
         let bytes = ManuallyDrop::new(bytes);
-        RawBytesMut {
+        RawElemsMut {
             ptr: bytes.ptr.cast::<u8>(),
             len: bytes.len,
             cap: bytes.cap,
             data: bytes.data.cast(),
         }
     }
-    pub const fn recover<T: Pod>(self) -> BytesMut<T> {
-        BytesMut {
+    pub const fn recover<T: Pod>(self) -> ElemsMut<T> {
+        ElemsMut {
             ptr: self.ptr.cast(),
             len: self.len,
             cap: self.cap,
@@ -119,7 +121,7 @@ const KIND_ARC: usize = 0b0;
 const KIND_VEC: usize = 0b1;
 const KIND_MASK: usize = 0b1;
 
-// The max original capacity value. Any `Bytes` allocated with a greater initial
+// The max original capacity value. Any `Elems` allocated with a greater initial
 // capacity will default to this.
 const MAX_ORIGINAL_CAPACITY_WIDTH: usize = 17;
 // The original capacity algorithm will not take effect unless the originally
@@ -145,25 +147,25 @@ const PTR_WIDTH: usize = 32;
 
 /*
  *
- * ===== BytesMut =====
+ * ===== ElemsMut =====
  *
  */
 
-impl<T: Pod> BytesMut<T> {
-    /// Creates a new `BytesMut` with the specified capacity.
+impl<T: Pod> ElemsMut<T> {
+    /// Creates a new `ElemsMut` with the specified capacity.
     ///
-    /// The returned `BytesMut` will be able to hold at least `capacity` bytes
+    /// The returned `ElemsMut` will be able to hold at least `capacity` bytes
     /// without reallocating.
     ///
     /// It is important to note that this function does not specify the length
-    /// of the returned `BytesMut`, but only the capacity.
+    /// of the returned `ElemsMut`, but only the capacity.
     ///
     /// # Examples
     ///
     /// ```
-    /// use bytes::{BytesMut, BufMut};
+    /// use elems::{ElemsMut, BufMut};
     ///
-    /// let mut bytes = BytesMut::with_capacity(64);
+    /// let mut bytes = ElemsMut::with_capacity(64);
     ///
     /// // `bytes` contains no data, even though there is capacity
     /// assert_eq!(bytes.len(), 0);
@@ -174,10 +176,10 @@ impl<T: Pod> BytesMut<T> {
     /// ```
     #[inline]
     pub fn with_capacity(capacity: usize) -> Self {
-        BytesMut::from_vec(Vec::with_capacity(capacity))
+        ElemsMut::from_vec(Vec::with_capacity(capacity))
     }
 
-    /// Creates a new `BytesMut` with default capacity.
+    /// Creates a new `ElemsMut` with default capacity.
     ///
     /// Resulting object has length 0 and unspecified capacity.
     /// This function does not allocate.
@@ -185,9 +187,9 @@ impl<T: Pod> BytesMut<T> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::{BytesMut, BufMut};
+    /// use elems::{ElemsMut, BufMut};
     ///
-    /// let mut bytes = BytesMut::new();
+    /// let mut bytes = ElemsMut::new();
     ///
     /// assert_eq!(0, bytes.len());
     ///
@@ -198,17 +200,17 @@ impl<T: Pod> BytesMut<T> {
     /// ```
     #[inline]
     pub fn new() -> Self {
-        BytesMut::with_capacity(0)
+        ElemsMut::with_capacity(0)
     }
 
-    /// Returns the number of bytes contained in this `BytesMut`.
+    /// Returns the number of bytes contained in this `ElemsMut`.
     ///
     /// # Examples
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::ElemsMut;
     ///
-    /// let b = BytesMut::from(&b"hello"[..]);
+    /// let b = ElemsMut::from(&b"hello"[..]);
     /// assert_eq!(b.len(), 5);
     /// ```
     #[inline]
@@ -216,12 +218,12 @@ impl<T: Pod> BytesMut<T> {
         self.len
     }
 
-    /// Returns true if the `BytesMut` has a length of 0.
+    /// Returns true if the `ElemsMut` has a length of 0.
     ///
     /// # Examples
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::BytesMut;
     ///
     /// let b = BytesMut::with_capacity(64);
     /// assert!(b.is_empty());
@@ -231,12 +233,12 @@ impl<T: Pod> BytesMut<T> {
         self.len == 0
     }
 
-    /// Returns the number of bytes the `BytesMut` can hold without reallocating.
+    /// Returns the number of bytes the `ElemsMut` can hold without reallocating.
     ///
     /// # Examples
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::BytesMut;
     ///
     /// let b = BytesMut::with_capacity(64);
     /// assert_eq!(b.capacity(), 64);
@@ -246,7 +248,7 @@ impl<T: Pod> BytesMut<T> {
         self.cap
     }
 
-    /// Converts `self` into an immutable `Bytes`.
+    /// Converts `self` into an immutable `Elems`.
     ///
     /// The conversion is zero cost and is used to indicate that the slice
     /// referenced by the handle will no longer be mutated. Once the conversion
@@ -255,10 +257,10 @@ impl<T: Pod> BytesMut<T> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::{BytesMut, BufMut};
+    /// use elems::{ElemsMut, BufMut};
     /// use std::thread;
     ///
-    /// let mut b = BytesMut::with_capacity(64);
+    /// let mut b = ElemsMut::with_capacity(64);
     /// b.put(&b"hello world"[..]);
     /// let b1 = b.freeze();
     /// let b2 = b1.clone();
@@ -271,14 +273,14 @@ impl<T: Pod> BytesMut<T> {
     /// th.join().unwrap();
     /// ```
     #[inline]
-    pub fn freeze(self) -> Bytes<T> {
+    pub fn freeze(self) -> Elems<T> {
         let bytes = ManuallyDrop::new(self);
         if bytes.kind() == KIND_VEC {
-            // Just re-use `Bytes` internal Vec vtable
+            // Just re-use `Elems` internal Vec vtable
             unsafe {
                 let off = bytes.get_vec_pos();
                 let vec = rebuild_vec(bytes.ptr.as_ptr(), bytes.len, bytes.cap, off);
-                let mut b: Bytes<T> = vec.into();
+                let mut b: Elems<T> = vec.into();
                 b.advance(off);
                 b
             }
@@ -288,11 +290,11 @@ impl<T: Pod> BytesMut<T> {
             let ptr = bytes.ptr.as_ptr();
             let len = bytes.len;
             let data = AtomicPtr::new(bytes.data.cast());
-            unsafe { Bytes::with_vtable(ptr, len, data, &VTablesMut::<T>::SHARED_VTABLE) }
+            unsafe { Elems::with_vtable(ptr, len, data, &VTablesMut::<T>::SHARED_VTABLE) }
         }
     }
 
-    /// Creates a new `BytesMut` containing `len` zeros.
+    /// Creates a new `ElemsMut` containing `len` zeros.
     ///
     /// The resulting object has a length of `len` and a capacity greater
     /// than or equal to `len`. The entire length of the object will be filled
@@ -304,22 +306,22 @@ impl<T: Pod> BytesMut<T> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::ElemsMut;
     ///
-    /// let zeros = BytesMut::zeroed(42);
+    /// let zeros = ElemsMut::zeroed(42);
     ///
     /// assert!(zeros.capacity() >= 42);
     /// assert_eq!(zeros.len(), 42);
     /// zeros.into_iter().for_each(|x| assert_eq!(x, 0));
     /// ```
     pub fn zeroed(len: usize) -> Self {
-        BytesMut::from_vec(vec![T::default(); len])
+        ElemsMut::from_vec(vec![T::default(); len])
     }
 
     /// Splits the bytes into two at the given index.
     ///
     /// Afterwards `self` contains elements `[0, at)`, and the returned
-    /// `BytesMut` contains elements `[at, capacity)`. It's guaranteed that the
+    /// `ElemsMut` contains elements `[at, capacity)`. It's guaranteed that the
     /// memory does not move, that is, the address of `self` does not change,
     /// and the address of the returned slice is `at` bytes after that.
     ///
@@ -329,9 +331,9 @@ impl<T: Pod> BytesMut<T> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::ElemsMut;
     ///
-    /// let mut a = BytesMut::from(&b"hello world"[..]);
+    /// let mut a = ElemsMut::from(&b"hello world"[..]);
     /// let mut b = a.split_off(5);
     ///
     /// a[0] = b'j';
@@ -344,7 +346,7 @@ impl<T: Pod> BytesMut<T> {
     /// # Panics
     ///
     /// Panics if `at > capacity`.
-    #[must_use = "consider BytesMut::truncate if you don't need the other half"]
+    #[must_use = "consider ElemsMut::truncate if you don't need the other half"]
     pub fn split_off(&mut self, at: usize) -> Self {
         assert!(
             at <= self.capacity(),
@@ -363,7 +365,7 @@ impl<T: Pod> BytesMut<T> {
     }
 
     /// Removes the bytes from the current view, returning them in a new
-    /// `BytesMut` handle.
+    /// `ElemsMut` handle.
     ///
     /// Afterwards, `self` will be empty, but will retain any additional
     /// capacity that it had before the operation. This is identical to
@@ -375,9 +377,9 @@ impl<T: Pod> BytesMut<T> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::{BytesMut, BufMut};
+    /// use elems::{ElemsMut, BufMut};
     ///
-    /// let mut buf = BytesMut::with_capacity(1024);
+    /// let mut buf = ElemsMut::with_capacity(1024);
     /// buf.put(&b"hello world"[..]);
     ///
     /// let other = buf.split();
@@ -387,7 +389,7 @@ impl<T: Pod> BytesMut<T> {
     ///
     /// assert_eq!(other, b"hello world"[..]);
     /// ```
-    #[must_use = "consider BytesMut::clear if you don't need the other half"]
+    #[must_use = "consider ElemsMut::clear if you don't need the other half"]
     pub fn split(&mut self) -> Self {
         let len = self.len();
         self.split_to(len)
@@ -395,7 +397,7 @@ impl<T: Pod> BytesMut<T> {
 
     /// Splits the buffer into two at the given index.
     ///
-    /// Afterwards `self` contains elements `[at, len)`, and the returned `BytesMut`
+    /// Afterwards `self` contains elements `[at, len)`, and the returned `ElemsMut`
     /// contains elements `[0, at)`.
     ///
     /// This is an `O(1)` operation that just increases the reference count and
@@ -404,9 +406,9 @@ impl<T: Pod> BytesMut<T> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::ElemsMut;
     ///
-    /// let mut a = BytesMut::from(&b"hello world"[..]);
+    /// let mut a = ElemsMut::from(&b"hello world"[..]);
     /// let mut b = a.split_to(5);
     ///
     /// a[0] = b'!';
@@ -419,7 +421,7 @@ impl<T: Pod> BytesMut<T> {
     /// # Panics
     ///
     /// Panics if `at > len`.
-    #[must_use = "consider BytesMut::advance if you don't need the other half"]
+    #[must_use = "consider ElemsMut::advance if you don't need the other half"]
     pub fn split_to(&mut self, at: usize) -> Self {
         assert!(
             at <= self.len(),
@@ -453,9 +455,9 @@ impl<T: Pod> BytesMut<T> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::ElemsMut;
     ///
-    /// let mut buf = BytesMut::from(&b"hello world"[..]);
+    /// let mut buf = ElemsMut::from(&b"hello world"[..]);
     /// buf.truncate(5);
     /// assert_eq!(buf, b"hello"[..]);
     /// ```
@@ -471,9 +473,9 @@ impl<T: Pod> BytesMut<T> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::ElemsMut;
     ///
-    /// let mut buf = BytesMut::from(&b"hello world"[..]);
+    /// let mut buf = ElemsMut::from(&b"hello world"[..]);
     /// buf.clear();
     /// assert!(buf.is_empty());
     /// ```
@@ -491,7 +493,7 @@ impl<T: Pod> BytesMut<T> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::BytesMut;
     ///
     /// let mut buf = BytesMut::new();
     ///
@@ -536,9 +538,9 @@ impl<T: Pod> BytesMut<T> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::ElemsMut;
     ///
-    /// let mut b = BytesMut::from(&b"hello world"[..]);
+    /// let mut b = ElemsMut::from(&b"hello world"[..]);
     ///
     /// unsafe {
     ///     b.set_len(5);
@@ -559,7 +561,7 @@ impl<T: Pod> BytesMut<T> {
     }
 
     /// Reserves capacity for at least `additional` more bytes to be inserted
-    /// into the given `BytesMut`.
+    /// into the given `ElemsMut`.
     ///
     /// More than `additional` bytes may be reserved in order to avoid frequent
     /// reallocations. A call to `reserve` may result in an allocation.
@@ -585,9 +587,9 @@ impl<T: Pod> BytesMut<T> {
     /// In the following example, a new buffer is allocated.
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::ElemsMut;
     ///
-    /// let mut buf = BytesMut::from(&b"hello"[..]);
+    /// let mut buf = ElemsMut::from(&b"hello"[..]);
     /// buf.reserve(64);
     /// assert!(buf.capacity() >= 69);
     /// ```
@@ -595,9 +597,9 @@ impl<T: Pod> BytesMut<T> {
     /// In the following example, the existing buffer is reclaimed.
     ///
     /// ```
-    /// use bytes::{BytesMut, BufMut};
+    /// use elems::{ElemsMut, BufMut};
     ///
-    /// let mut buf = BytesMut::with_capacity(128);
+    /// let mut buf = ElemsMut::with_capacity(128);
     /// buf.put(&[0; 64][..]);
     ///
     /// let ptr = buf.as_ptr();
@@ -645,7 +647,7 @@ impl<T: Pod> BytesMut<T> {
             // Otherwise, since backed by a vector, use `Vec::reserve`
             //
             // We need to make sure that this optimization does not kill the
-            // amortized runtimes of BytesMut's operations.
+            // amortized runtimes of ElemsMut's operations.
             unsafe {
                 let off = self.get_vec_pos();
 
@@ -745,7 +747,7 @@ impl<T: Pod> BytesMut<T> {
                     // calculate offset
                     let off = (self.ptr.as_ptr() as usize) - (v.as_ptr() as usize);
 
-                    // new_cap is calculated in terms of `BytesMut`, not the underlying
+                    // new_cap is calculated in terms of `ElemsMut`, not the underlying
                     // `Vec`, so it does not take the offset into account.
                     //
                     // Thus we have to manually add it here.
@@ -765,8 +767,8 @@ impl<T: Pod> BytesMut<T> {
 
                     // No space - allocate more
                     //
-                    // The length field of `Shared::vec` is not used by the `BytesMut`;
-                    // instead we use the `len` field in the `BytesMut` itself. However,
+                    // The length field of `Shared::vec` is not used by the `ElemsMut`;
+                    // instead we use the `len` field in the `ElemsMut` itself. However,
                     // when calling `reserve`, it doesn't guarantee that data stored in
                     // the unused capacity of the vector is copied over to the new
                     // allocation, so we need to ensure that we don't have any data we
@@ -812,7 +814,7 @@ impl<T: Pod> BytesMut<T> {
     }
 
     /// Attempts to cheaply reclaim already allocated capacity for at least `additional` more
-    /// bytes to be inserted into the given `BytesMut` and returns `true` if it succeeded.
+    /// bytes to be inserted into the given `ElemsMut` and returns `true` if it succeeded.
     ///
     /// `try_reclaim` behaves exactly like `reserve`, except that it never allocates new storage
     /// and returns a `bool` indicating whether it was successful in doing so:
@@ -822,16 +824,16 @@ impl<T: Pod> BytesMut<T> {
     ///  - The existing allocation cannot be reclaimed cheaply or it was less than
     ///    `additional` bytes in size
     ///
-    /// Reclaiming the allocation cheaply is possible if the `BytesMut` has no outstanding
-    /// references through other `BytesMut`s or `Bytes` which point to the same underlying
+    /// Reclaiming the allocation cheaply is possible if the `ElemsMut` has no outstanding
+    /// references through other `ElemsMut`s or `Elems` which point to the same underlying
     /// storage.
     ///
     /// # Examples
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::ElemsMut;
     ///
-    /// let mut buf = BytesMut::with_capacity(64);
+    /// let mut buf = ElemsMut::with_capacity(64);
     /// assert_eq!(true, buf.try_reclaim(64));
     /// assert_eq!(64, buf.capacity());
     ///
@@ -857,7 +859,7 @@ impl<T: Pod> BytesMut<T> {
     // I tried splitting out try_reclaim_inner after the short circuits, but it was inlined
     // regardless with Rust 1.78.0 so probably not worth it
     #[inline]
-    #[must_use = "consider BytesMut::reserve if you need an infallible reservation"]
+    #[must_use = "consider ElemsMut::reserve if you need an infallible reservation"]
     pub fn try_reclaim(&mut self, additional: usize) -> bool {
         let len = self.len();
         let rem = self.capacity() - len;
@@ -871,17 +873,17 @@ impl<T: Pod> BytesMut<T> {
         self.reserve_inner(additional, false)
     }
 
-    /// Appends given bytes to this `BytesMut`.
+    /// Appends given bytes to this `ElemsMut`.
     ///
-    /// If this `BytesMut` object does not have enough capacity, it is resized
+    /// If this `ElemsMut` object does not have enough capacity, it is resized
     /// first.
     ///
     /// # Examples
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::ElemsMut;
     ///
-    /// let mut buf = BytesMut::with_capacity(0);
+    /// let mut buf = ElemsMut::with_capacity(0);
     /// buf.extend_from_slice(b"aaabbb");
     /// buf.extend_from_slice(b"cccddd");
     ///
@@ -905,11 +907,11 @@ impl<T: Pod> BytesMut<T> {
         }
     }
 
-    /// Absorbs a `BytesMut` that was previously split off.
+    /// Absorbs a `ElemsMut` that was previously split off.
     ///
-    /// If the two `BytesMut` objects were previously contiguous and not mutated
+    /// If the two `ElemsMut` objects were previously contiguous and not mutated
     /// in a way that causes re-allocation i.e., if `other` was created by
-    /// calling `split_off` on this `BytesMut`, then this is an `O(1)` operation
+    /// calling `split_off` on this `ElemsMut`, then this is an `O(1)` operation
     /// that just decreases a reference count and sets a few indices.
     /// Otherwise this method degenerates to
     /// `self.extend_from_slice(other.as_ref())`.
@@ -917,9 +919,9 @@ impl<T: Pod> BytesMut<T> {
     /// # Examples
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::ElemsMut;
     ///
-    /// let mut buf = BytesMut::with_capacity(64);
+    /// let mut buf = ElemsMut::with_capacity(64);
     /// buf.extend_from_slice(b"aaabbbcccddd");
     ///
     /// let split = buf.split_off(6);
@@ -946,7 +948,7 @@ impl<T: Pod> BytesMut<T> {
     // change that in the future to some alternate allocator strategy.
     //
     // Thus, we don't expose an easy way to construct from a `Vec` since an
-    // internal change could make a simple pattern (`BytesMut::from(vec)`)
+    // internal change could make a simple pattern (`ElemsMut::from(vec)`)
     // suddenly a lot more expensive.
     #[inline]
     pub(crate) fn from_vec(vec: Vec<T>) -> Self {
@@ -1114,12 +1116,12 @@ impl<T: Pod> BytesMut<T> {
     /// reading from a file) before marking the data as initialized using the
     /// [`set_len`] method.
     ///
-    /// [`set_len`]: BytesMut::set_len
+    /// [`set_len`]: ElemsMut::set_len
     ///
     /// # Examples
     ///
     /// ```
-    /// use bytes::BytesMut;
+    /// use elems::BytesMut;
     ///
     /// // Allocate buffer big enough for 10 bytes.
     /// let mut buf = BytesMut::with_capacity(10);
@@ -1160,7 +1162,7 @@ impl<T: Pod> BytesMut<T> {
     }
 }
 
-impl<T: Pod> Drop for BytesMut<T> {
+impl<T: Pod> Drop for ElemsMut<T> {
     fn drop(&mut self) {
         let kind = self.kind();
 
@@ -1177,7 +1179,7 @@ impl<T: Pod> Drop for BytesMut<T> {
     }
 }
 
-impl Buf for BytesMut {
+impl Buf for ElemsMut {
     #[inline]
     fn remaining(&self) -> usize {
         self.len()
@@ -1203,12 +1205,12 @@ impl Buf for BytesMut {
         }
     }
 
-    fn copy_to_bytes(&mut self, len: usize) -> Bytes {
+    fn copy_to_bytes(&mut self, len: usize) -> Elems {
         self.split_to(len).freeze()
     }
 }
 
-unsafe impl BufMut for BytesMut {
+unsafe impl BufMut for ElemsMut {
     #[inline]
     fn remaining_mut(&self) -> usize {
         usize::MAX - self.len()
@@ -1268,14 +1270,14 @@ unsafe impl BufMut for BytesMut {
     }
 }
 
-impl<T: Pod> AsRef<[T]> for BytesMut<T> {
+impl<T: Pod> AsRef<[T]> for ElemsMut<T> {
     #[inline]
     fn as_ref(&self) -> &[T] {
         self.as_slice()
     }
 }
 
-impl<T: Pod> Deref for BytesMut<T> {
+impl<T: Pod> Deref for ElemsMut<T> {
     type Target = [T];
 
     #[inline]
@@ -1284,66 +1286,66 @@ impl<T: Pod> Deref for BytesMut<T> {
     }
 }
 
-impl<T: Pod> AsMut<[T]> for BytesMut<T> {
+impl<T: Pod> AsMut<[T]> for ElemsMut<T> {
     #[inline]
     fn as_mut(&mut self) -> &mut [T] {
         self.as_slice_mut()
     }
 }
 
-impl<T: Pod> DerefMut for BytesMut<T> {
+impl<T: Pod> DerefMut for ElemsMut<T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut [T] {
         self.as_mut()
     }
 }
 
-impl<'a, T: Pod> From<&'a [T]> for BytesMut<T> {
-    fn from(src: &'a [T]) -> BytesMut<T> {
-        BytesMut::from_vec(src.to_vec())
+impl<'a, T: Pod> From<&'a [T]> for ElemsMut<T> {
+    fn from(src: &'a [T]) -> ElemsMut<T> {
+        ElemsMut::from_vec(src.to_vec())
     }
 }
 
-impl<'a> From<&'a str> for BytesMut {
-    fn from(src: &'a str) -> BytesMut {
-        BytesMut::from(src.as_bytes())
+impl<'a> From<&'a str> for ElemsMut {
+    fn from(src: &'a str) -> ElemsMut {
+        ElemsMut::from(src.as_bytes())
     }
 }
 
-impl<T: Pod> From<BytesMut<T>> for Bytes<T> {
-    fn from(src: BytesMut<T>) -> Bytes<T> {
+impl<T: Pod> From<ElemsMut<T>> for Elems<T> {
+    fn from(src: ElemsMut<T>) -> Elems<T> {
         src.freeze()
     }
 }
 
-impl PartialEq for BytesMut {
-    fn eq(&self, other: &BytesMut) -> bool {
+impl PartialEq for ElemsMut {
+    fn eq(&self, other: &ElemsMut) -> bool {
         self.as_slice() == other.as_slice()
     }
 }
 
-impl PartialOrd for BytesMut {
-    fn partial_cmp(&self, other: &BytesMut) -> Option<cmp::Ordering> {
+impl PartialOrd for ElemsMut {
+    fn partial_cmp(&self, other: &ElemsMut) -> Option<cmp::Ordering> {
         self.as_slice().partial_cmp(other.as_slice())
     }
 }
 
-impl Ord for BytesMut {
-    fn cmp(&self, other: &BytesMut) -> cmp::Ordering {
+impl Ord for ElemsMut {
+    fn cmp(&self, other: &ElemsMut) -> cmp::Ordering {
         self.as_slice().cmp(other.as_slice())
     }
 }
 
-impl Eq for BytesMut {}
+impl Eq for ElemsMut {}
 
-impl Default for BytesMut {
+impl Default for ElemsMut {
     #[inline]
-    fn default() -> BytesMut {
-        BytesMut::new()
+    fn default() -> ElemsMut {
+        ElemsMut::new()
     }
 }
 
-impl hash::Hash for BytesMut {
+impl hash::Hash for ElemsMut {
     fn hash<H>(&self, state: &mut H)
     where
         H: hash::Hasher,
@@ -1353,19 +1355,19 @@ impl hash::Hash for BytesMut {
     }
 }
 
-impl Borrow<[u8]> for BytesMut {
+impl Borrow<[u8]> for ElemsMut {
     fn borrow(&self) -> &[u8] {
         self.as_ref()
     }
 }
 
-impl BorrowMut<[u8]> for BytesMut {
+impl BorrowMut<[u8]> for ElemsMut {
     fn borrow_mut(&mut self) -> &mut [u8] {
         self.as_mut()
     }
 }
 
-impl fmt::Write for BytesMut {
+impl fmt::Write for ElemsMut {
     #[inline]
     fn write_str(&mut self, s: &str) -> fmt::Result {
         if self.remaining_mut() >= s.len() {
@@ -1382,22 +1384,22 @@ impl fmt::Write for BytesMut {
     }
 }
 
-impl Clone for BytesMut {
-    fn clone(&self) -> BytesMut {
-        BytesMut::from(&self[..])
+impl Clone for ElemsMut {
+    fn clone(&self) -> ElemsMut {
+        ElemsMut::from(&self[..])
     }
 }
 
-impl IntoIterator for BytesMut {
+impl IntoIterator for ElemsMut {
     type Item = u8;
-    type IntoIter = IntoIter<BytesMut>;
+    type IntoIter = IntoIter<ElemsMut>;
 
     fn into_iter(self) -> Self::IntoIter {
         IntoIter::new(self)
     }
 }
 
-impl<'a> IntoIterator for &'a BytesMut {
+impl<'a> IntoIterator for &'a ElemsMut {
     type Item = &'a u8;
     type IntoIter = core::slice::Iter<'a, u8>;
 
@@ -1406,7 +1408,7 @@ impl<'a> IntoIterator for &'a BytesMut {
     }
 }
 
-impl Extend<u8> for BytesMut {
+impl Extend<u8> for ElemsMut {
     fn extend<T>(&mut self, iter: T)
     where
         T: IntoIterator<Item = u8>,
@@ -1424,7 +1426,7 @@ impl Extend<u8> for BytesMut {
     }
 }
 
-impl<'a> Extend<&'a u8> for BytesMut {
+impl<'a> Extend<&'a u8> for ElemsMut {
     fn extend<T>(&mut self, iter: T)
     where
         T: IntoIterator<Item = &'a u8>,
@@ -1433,10 +1435,10 @@ impl<'a> Extend<&'a u8> for BytesMut {
     }
 }
 
-impl Extend<Bytes> for BytesMut {
+impl Extend<Elems> for ElemsMut {
     fn extend<T>(&mut self, iter: T)
     where
-        T: IntoIterator<Item = Bytes>,
+        T: IntoIterator<Item = Elems>,
     {
         for bytes in iter {
             self.extend_from_slice(&bytes)
@@ -1444,15 +1446,15 @@ impl Extend<Bytes> for BytesMut {
     }
 }
 
-impl FromIterator<u8> for BytesMut {
+impl FromIterator<u8> for ElemsMut {
     fn from_iter<T: IntoIterator<Item = u8>>(into_iter: T) -> Self {
-        BytesMut::from_vec(Vec::from_iter(into_iter))
+        ElemsMut::from_vec(Vec::from_iter(into_iter))
     }
 }
 
-impl<'a> FromIterator<&'a u8> for BytesMut {
+impl<'a> FromIterator<&'a u8> for ElemsMut {
     fn from_iter<T: IntoIterator<Item = &'a u8>>(into_iter: T) -> Self {
-        BytesMut::from_iter(into_iter.into_iter().copied())
+        ElemsMut::from_iter(into_iter.into_iter().copied())
     }
 }
 
@@ -1589,8 +1591,8 @@ mod tests {
     }
 }
 
-unsafe impl Send for BytesMut {}
-unsafe impl Sync for BytesMut {}
+unsafe impl Send for ElemsMut {}
+unsafe impl Sync for ElemsMut {}
 
 /*
  *
@@ -1598,158 +1600,158 @@ unsafe impl Sync for BytesMut {}
  *
  */
 
-impl PartialEq<[u8]> for BytesMut {
+impl PartialEq<[u8]> for ElemsMut {
     fn eq(&self, other: &[u8]) -> bool {
         &**self == other
     }
 }
 
-impl PartialOrd<[u8]> for BytesMut {
+impl PartialOrd<[u8]> for ElemsMut {
     fn partial_cmp(&self, other: &[u8]) -> Option<cmp::Ordering> {
         (**self).partial_cmp(other)
     }
 }
 
-impl PartialEq<BytesMut> for [u8] {
-    fn eq(&self, other: &BytesMut) -> bool {
+impl PartialEq<ElemsMut> for [u8] {
+    fn eq(&self, other: &ElemsMut) -> bool {
         *other == *self
     }
 }
 
-impl PartialOrd<BytesMut> for [u8] {
-    fn partial_cmp(&self, other: &BytesMut) -> Option<cmp::Ordering> {
+impl PartialOrd<ElemsMut> for [u8] {
+    fn partial_cmp(&self, other: &ElemsMut) -> Option<cmp::Ordering> {
         <[u8] as PartialOrd<[u8]>>::partial_cmp(self, other)
     }
 }
 
-impl PartialEq<str> for BytesMut {
+impl PartialEq<str> for ElemsMut {
     fn eq(&self, other: &str) -> bool {
         &**self == other.as_bytes()
     }
 }
 
-impl PartialOrd<str> for BytesMut {
+impl PartialOrd<str> for ElemsMut {
     fn partial_cmp(&self, other: &str) -> Option<cmp::Ordering> {
         (**self).partial_cmp(other.as_bytes())
     }
 }
 
-impl PartialEq<BytesMut> for str {
-    fn eq(&self, other: &BytesMut) -> bool {
+impl PartialEq<ElemsMut> for str {
+    fn eq(&self, other: &ElemsMut) -> bool {
         *other == *self
     }
 }
 
-impl PartialOrd<BytesMut> for str {
-    fn partial_cmp(&self, other: &BytesMut) -> Option<cmp::Ordering> {
+impl PartialOrd<ElemsMut> for str {
+    fn partial_cmp(&self, other: &ElemsMut) -> Option<cmp::Ordering> {
         <[u8] as PartialOrd<[u8]>>::partial_cmp(self.as_bytes(), other)
     }
 }
 
-impl PartialEq<Vec<u8>> for BytesMut {
+impl PartialEq<Vec<u8>> for ElemsMut {
     fn eq(&self, other: &Vec<u8>) -> bool {
         *self == other[..]
     }
 }
 
-impl PartialOrd<Vec<u8>> for BytesMut {
+impl PartialOrd<Vec<u8>> for ElemsMut {
     fn partial_cmp(&self, other: &Vec<u8>) -> Option<cmp::Ordering> {
         (**self).partial_cmp(&other[..])
     }
 }
 
-impl PartialEq<BytesMut> for Vec<u8> {
-    fn eq(&self, other: &BytesMut) -> bool {
+impl PartialEq<ElemsMut> for Vec<u8> {
+    fn eq(&self, other: &ElemsMut) -> bool {
         *other == *self
     }
 }
 
-impl PartialOrd<BytesMut> for Vec<u8> {
-    fn partial_cmp(&self, other: &BytesMut) -> Option<cmp::Ordering> {
+impl PartialOrd<ElemsMut> for Vec<u8> {
+    fn partial_cmp(&self, other: &ElemsMut) -> Option<cmp::Ordering> {
         other.partial_cmp(self)
     }
 }
 
-impl PartialEq<String> for BytesMut {
+impl PartialEq<String> for ElemsMut {
     fn eq(&self, other: &String) -> bool {
         *self == other[..]
     }
 }
 
-impl PartialOrd<String> for BytesMut {
+impl PartialOrd<String> for ElemsMut {
     fn partial_cmp(&self, other: &String) -> Option<cmp::Ordering> {
         (**self).partial_cmp(other.as_bytes())
     }
 }
 
-impl PartialEq<BytesMut> for String {
-    fn eq(&self, other: &BytesMut) -> bool {
+impl PartialEq<ElemsMut> for String {
+    fn eq(&self, other: &ElemsMut) -> bool {
         *other == *self
     }
 }
 
-impl PartialOrd<BytesMut> for String {
-    fn partial_cmp(&self, other: &BytesMut) -> Option<cmp::Ordering> {
+impl PartialOrd<ElemsMut> for String {
+    fn partial_cmp(&self, other: &ElemsMut) -> Option<cmp::Ordering> {
         <[u8] as PartialOrd<[u8]>>::partial_cmp(self.as_bytes(), other)
     }
 }
 
-impl<'a, T: ?Sized> PartialEq<&'a T> for BytesMut
+impl<'a, T: ?Sized> PartialEq<&'a T> for ElemsMut
 where
-    BytesMut: PartialEq<T>,
+    ElemsMut: PartialEq<T>,
 {
     fn eq(&self, other: &&'a T) -> bool {
         *self == **other
     }
 }
 
-impl<'a, T: ?Sized> PartialOrd<&'a T> for BytesMut
+impl<'a, T: ?Sized> PartialOrd<&'a T> for ElemsMut
 where
-    BytesMut: PartialOrd<T>,
+    ElemsMut: PartialOrd<T>,
 {
     fn partial_cmp(&self, other: &&'a T) -> Option<cmp::Ordering> {
         self.partial_cmp(*other)
     }
 }
 
-impl PartialEq<BytesMut> for &[u8] {
-    fn eq(&self, other: &BytesMut) -> bool {
+impl PartialEq<ElemsMut> for &[u8] {
+    fn eq(&self, other: &ElemsMut) -> bool {
         *other == *self
     }
 }
 
-impl PartialOrd<BytesMut> for &[u8] {
-    fn partial_cmp(&self, other: &BytesMut) -> Option<cmp::Ordering> {
+impl PartialOrd<ElemsMut> for &[u8] {
+    fn partial_cmp(&self, other: &ElemsMut) -> Option<cmp::Ordering> {
         <[u8] as PartialOrd<[u8]>>::partial_cmp(self, other)
     }
 }
 
-impl PartialEq<BytesMut> for &str {
-    fn eq(&self, other: &BytesMut) -> bool {
+impl PartialEq<ElemsMut> for &str {
+    fn eq(&self, other: &ElemsMut) -> bool {
         *other == *self
     }
 }
 
-impl PartialOrd<BytesMut> for &str {
-    fn partial_cmp(&self, other: &BytesMut) -> Option<cmp::Ordering> {
+impl PartialOrd<ElemsMut> for &str {
+    fn partial_cmp(&self, other: &ElemsMut) -> Option<cmp::Ordering> {
         other.partial_cmp(self)
     }
 }
 
-impl PartialEq<BytesMut> for Bytes {
-    fn eq(&self, other: &BytesMut) -> bool {
+impl PartialEq<ElemsMut> for Elems {
+    fn eq(&self, other: &ElemsMut) -> bool {
         other[..] == self[..]
     }
 }
 
-impl PartialEq<Bytes> for BytesMut {
-    fn eq(&self, other: &Bytes) -> bool {
+impl PartialEq<Elems> for ElemsMut {
+    fn eq(&self, other: &Elems) -> bool {
         other[..] == self[..]
     }
 }
 
-impl<T: Pod> From<BytesMut<T>> for Vec<T> {
-    fn from(bytes: BytesMut<T>) -> Self {
+impl<T: Pod> From<ElemsMut<T>> for Vec<T> {
+    fn from(bytes: ElemsMut<T>) -> Self {
         let kind = bytes.kind();
         let bytes = ManuallyDrop::new(bytes);
 
@@ -1821,17 +1823,16 @@ impl<T: Pod> VTablesMut<T> {
         to_mut: shared_v_to_mut::<T>,
         is_unique: shared_v_is_unique::<T>,
         drop: shared_v_drop::<T>,
-        layout: Layout::new::<T>(),
         promotable: false,
     };
 }
 
-unsafe fn shared_v_clone<T: Pod>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> RawBytes {
+unsafe fn shared_v_clone<T: Pod>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> RawElems {
     let shared = data.load(Ordering::Relaxed) as *mut Shared<T>;
     increment_shared(shared);
 
     let data = AtomicPtr::new(shared as *mut ());
-    RawBytes::erase(Bytes::<T>::with_vtable(
+    RawElems::erase(Elems::with_vtable(
         ptr.cast::<T>(),
         len,
         data,
@@ -1867,7 +1868,7 @@ unsafe fn shared_v_to_vec<T: Pod>(
     (vec.as_mut_ptr().cast::<u8>(), vec.len(), vec.capacity())
 }
 
-unsafe fn shared_v_to_mut<T: Pod>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> RawBytesMut {
+unsafe fn shared_v_to_mut<T: Pod>(data: &AtomicPtr<()>, ptr: *const u8, len: usize) -> RawElemsMut {
     let shared: *mut Shared<T> = data.load(Ordering::Relaxed).cast();
 
     if (*shared).is_unique() {
@@ -1883,7 +1884,7 @@ unsafe fn shared_v_to_mut<T: Pod>(data: &AtomicPtr<()>, ptr: *const u8, len: usi
 
         let ptr = vptr(ptr as *mut T);
 
-        RawBytesMut::erase(BytesMut::<T> {
+        RawElemsMut::erase(ElemsMut::<T> {
             ptr,
             len,
             cap,
@@ -1892,7 +1893,7 @@ unsafe fn shared_v_to_mut<T: Pod>(data: &AtomicPtr<()>, ptr: *const u8, len: usi
     } else {
         let v = slice::from_raw_parts(ptr.cast::<T>(), len).to_vec();
         release_shared(shared);
-        RawBytesMut::erase(BytesMut::<T>::from_vec(v))
+        RawElemsMut::erase(ElemsMut::<T>::from_vec(v))
     }
 }
 
@@ -1913,30 +1914,30 @@ unsafe fn shared_v_drop<T: Pod>(data: &mut AtomicPtr<()>, _ptr: *const u8, _len:
 // compile-fails
 
 /// ```compile_fail
-/// use bytes::BytesMut;
+/// use elems::ElemsMut;
 /// #[deny(unused_must_use)]
 /// {
-///     let mut b1 = BytesMut::from("hello world");
+///     let mut b1 = ElemsMut::from("hello world");
 ///     b1.split_to(6);
 /// }
 /// ```
 fn _split_to_must_use() {}
 
 /// ```compile_fail
-/// use bytes::BytesMut;
+/// use elems::ElemsMut;
 /// #[deny(unused_must_use)]
 /// {
-///     let mut b1 = BytesMut::from("hello world");
+///     let mut b1 = ElemsMut::from("hello world");
 ///     b1.split_off(6);
 /// }
 /// ```
 fn _split_off_must_use() {}
 
 /// ```compile_fail
-/// use bytes::BytesMut;
+/// use elems::ElemsMut;
 /// #[deny(unused_must_use)]
 /// {
-///     let mut b1 = BytesMut::from("hello world");
+///     let mut b1 = ElemsMut::from("hello world");
 ///     b1.split();
 /// }
 /// ```
@@ -1948,26 +1949,26 @@ mod fuzz {
     use loom::sync::Arc;
     use loom::thread;
 
-    use super::BytesMut;
-    use crate::Bytes;
+    use super::ElemsMut;
+    use crate::Elems;
 
     #[test]
     fn bytes_mut_cloning_frozen() {
         loom::model(|| {
-            let a = BytesMut::from(&b"abcdefgh"[..]).split().freeze();
+            let a = ElemsMut::from(&b"abcdefgh"[..]).split().freeze();
             let addr = a.as_ptr() as usize;
 
-            // test the Bytes::clone is Sync by putting it in an Arc
+            // test the Elems::clone is Sync by putting it in an Arc
             let a1 = Arc::new(a);
             let a2 = a1.clone();
 
             let t1 = thread::spawn(move || {
-                let b: Bytes = (*a1).clone();
+                let b: Elems = (*a1).clone();
                 assert_eq!(b.as_ptr() as usize, addr);
             });
 
             let t2 = thread::spawn(move || {
-                let b: Bytes = (*a2).clone();
+                let b: Elems = (*a2).clone();
                 assert_eq!(b.as_ptr() as usize, addr);
             });
 

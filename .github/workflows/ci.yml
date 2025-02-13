@@ -42,7 +42,7 @@ jobs:
   #     run: cargo clippy --all-features
 
   # This represents the minimum Rust version supported by
-  # Bytes. Updating this should be done in a dedicated PR.
+  # Elems. Updating this should be done in a dedicated PR.
   #
   # Tests are not run as tests may require newer versions of
   # rust.
@@ -206,6 +206,6 @@ jobs:
           cd target/doc
           git init
           git add .
-          git -c user.name='ci' -c user.email='ci' commit -m 'Deploy Bytes API documentation'
+          git -c user.name='ci' -c user.email='ci' commit -m 'Deploy Elems API documentation'
           git push -f -q https://git:${{ secrets.github_token }}@github.com/${{ github.repository }} HEAD:gh-pages
         if: github.event_name == 'push' && github.event.ref == 'refs/heads/master' && github.repository == 'tokio-rs/bytes'

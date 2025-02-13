@@ -1,9 +1,9 @@
 use core::fmt::{Formatter, LowerHex, Result, UpperHex};
 
-use super::BytesRef;
-use crate::{Bytes, BytesMut};
+use super::ElemsRef;
+use crate::{Elems, ElemsMut};
 
-impl LowerHex for BytesRef<'_> {
+impl LowerHex for ElemsRef<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         for &b in self.0 {
             write!(f, "{:02x}", b)?;
@@ -12,7 +12,7 @@ impl LowerHex for BytesRef<'_> {
     }
 }
 
-impl UpperHex for BytesRef<'_> {
+impl UpperHex for ElemsRef<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         for &b in self.0 {
             write!(f, "{:02X}", b)?;
@@ -21,7 +21,7 @@ impl UpperHex for BytesRef<'_> {
     }
 }
 
-fmt_impl!(LowerHex, Bytes);
-fmt_impl!(LowerHex, BytesMut);
-fmt_impl!(UpperHex, Bytes);
-fmt_impl!(UpperHex, BytesMut);
+fmt_impl!(LowerHex, Elems);
+fmt_impl!(LowerHex, ElemsMut);
+fmt_impl!(UpperHex, Elems);
+fmt_impl!(UpperHex, ElemsMut);

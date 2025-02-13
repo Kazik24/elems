@@ -16,7 +16,7 @@
 
 ### Added
 
-- Add `Bytes::from_owner` to enable externally-allocated memory (#742)
+- Add `Elems::from_owner` to enable externally-allocated memory (#742)
 
 ### Documented
 
@@ -43,13 +43,13 @@
 
 ### Internal changes
 
-- Ensure BytesMut::advance reduces capacity (#728)
+- Ensure ElemsMut::advance reduces capacity (#728)
 
 # 1.7.1 (August 1, 2024)
 
 This release reverts the following change due to a regression:
 
-- Reuse capacity when possible in `<BytesMut as Buf>::advance` impl (#698)
+- Reuse capacity when possible in `<ElemsMut as Buf>::advance` impl (#698)
 
 The revert can be found at #726.
 
@@ -57,41 +57,41 @@ The revert can be found at #726.
 
 ### Added
 
-- Add conversion from `Bytes` to `BytesMut` (#695, #710)
+- Add conversion from `Elems` to `ElemsMut` (#695, #710)
 - Add reclaim method without additional allocation (#686)
 
 ### Documented
 
-- Clarify how `BytesMut::zeroed` works (#714)
+- Clarify how `ElemsMut::zeroed` works (#714)
 - Clarify the behavior of `Buf::chunk` (#717)
 
 ### Changed
 
-- Change length condition of `BytesMut::truncate`
-- Reuse capacity when possible in `<BytesMut as Buf>::advance` impl (#698)
-- Improve `must_use` suggestion of `BytesMut::split` (#699)
+- Change length condition of `ElemsMut::truncate`
+- Reuse capacity when possible in `<ElemsMut as Buf>::advance` impl (#698)
+- Improve `must_use` suggestion of `ElemsMut::split` (#699)
 
 ### Internal changes
 
 - Use `ManuallyDrop` instead of `mem::forget` (#678)
-- Don't set `len` in `BytesMut::reserve` (#682)
-- Optimize `Bytes::copy_to_bytes` (#688)
-- Refactor `BytesMut::truncate` (#694)
-- Refactor `BytesMut::resize` (#696)
-- Reorder assertion in `Bytes::split_to`, `Bytes::split_off` (#689, #693)
+- Don't set `len` in `ElemsMut::reserve` (#682)
+- Optimize `Elems::copy_to_bytes` (#688)
+- Refactor `ElemsMut::truncate` (#694)
+- Refactor `ElemsMut::resize` (#696)
+- Reorder assertion in `Elems::split_to`, `Elems::split_off` (#689, #693)
 - Use `offset_from` in more places (#705)
 - Correct the wrong usage of `IntoIter` (#707)
 
 # 1.6.1 (July 13, 2024)
 
-This release fixes a bug where `Bytes::is_unique` returns incorrect values when
-the `Bytes` originates from a shared `BytesMut`. (#718)
+This release fixes a bug where `Elems::is_unique` returns incorrect values when
+the `Elems` originates from a shared `ElemsMut`. (#718)
 
 # 1.6.0 (March 22, 2024)
 
 ### Added
 
-- Add `Bytes::is_unique` (#643)
+- Add `Elems::is_unique` (#643)
 
 ### Documented
 
@@ -107,7 +107,7 @@ the `Bytes` originates from a shared `BytesMut`. (#718)
 - Various cleanup (#635)
 - Simplify `UninitSlice::as_uninit_slice_mut()` logic (#644)
 - Use `self.` instead of `Self::` (#642)
-- `BytesMut`: Assert alignment of `Shared` (#652)
+- `ElemsMut`: Assert alignment of `Shared` (#652)
 - Remove unnecessary namespace qualifier (#660)
 - Remove an unnecessary else branch (#662)
 - Remove unreachable else branch (#661)
@@ -133,7 +133,7 @@ the `Bytes` originates from a shared `BytesMut`. (#718)
 
 ### Changed
 
-- Mark `BytesMut::extend_from_slice` as inline (#595)
+- Mark `ElemsMut::extend_from_slice` as inline (#595)
 
 # 1.4.0 (January 31, 2023)
 
@@ -143,7 +143,7 @@ the `Bytes` originates from a shared `BytesMut`. (#718)
 
 ### Fixed
 
-- Avoid large reallocations when freezing `BytesMut` (#592)
+- Avoid large reallocations when freezing `ElemsMut` (#592)
 
 ### Documented
 
@@ -154,7 +154,7 @@ the `Bytes` originates from a shared `BytesMut`. (#718)
 
 ### Added
 
-- Rename and expose `BytesMut::spare_capacity_mut` (#572)
+- Rename and expose `ElemsMut::spare_capacity_mut` (#572)
 - Implement native-endian get and put functions for `Buf` and `BufMut` (#576)
 
 ### Fixed
@@ -163,7 +163,7 @@ the `Bytes` originates from a shared `BytesMut`. (#718)
 
 ### Documented
 
-- `Bytes::new` etc should return `Self` not `Bytes` (#568)
+- `Elems::new` etc should return `Self` not `Elems` (#568)
 
 # 1.2.1 (July 30, 2022)
 
@@ -175,35 +175,35 @@ the `Bytes` originates from a shared `BytesMut`. (#718)
 
 ### Added
 
-- Add `BytesMut::zeroed` (#517)
-- Implement `Extend<Bytes>` for `BytesMut` (#527)
-- Add conversion from `BytesMut` to `Vec<u8>` (#543, #554)
-- Add conversion from `Bytes` to `Vec<u8>` (#547)
+- Add `ElemsMut::zeroed` (#517)
+- Implement `Extend<Elems>` for `ElemsMut` (#527)
+- Add conversion from `ElemsMut` to `Vec<u8>` (#543, #554)
+- Add conversion from `Elems` to `Vec<u8>` (#547)
 - Add `UninitSlice::as_uninit_slice_mut()` (#548)
-- Add const to `Bytes::{len,is_empty}` (#514)
+- Add const to `Elems::{len,is_empty}` (#514)
 
 ### Changed
 
-- Reuse vector in `BytesMut::reserve` (#539, #544)
+- Reuse vector in `ElemsMut::reserve` (#539, #544)
 
 ### Fixed
 
 - Make miri happy (#515, #523, #542, #545, #553)
 - Make tsan happy (#541)
 - Fix `remaining_mut()` on chain (#488)
-- Fix amortized asymptotics of `BytesMut` (#555)
+- Fix amortized asymptotics of `ElemsMut` (#555)
 
 ### Documented
 
 - Redraw layout diagram with box drawing characters (#539)
-- Clarify `BytesMut::unsplit` docs (#535)
+- Clarify `ElemsMut::unsplit` docs (#535)
 
 # 1.1.0 (August 25, 2021)
 
 ### Added
 
 - `BufMut::put_bytes(self, val, cnt)` (#487)
-- Implement `From<Box<[u8]>>` for `Bytes` (#504)
+- Implement `From<Box<[u8]>>` for `Elems` (#504)
 
 ### Changed
 
@@ -254,9 +254,9 @@ API polish in preparation for a 1.0 release.
 
 # 0.5.6 (July 13, 2020)
 
-- Improve `BytesMut` to reuse buffer when fully `advance`d.
-- Mark `BytesMut::{as_mut, set_len}` with `#[inline]`.
-- Relax synchronization when cloning in shared vtable of `Bytes`.
+- Improve `ElemsMut` to reuse buffer when fully `advance`d.
+- Mark `ElemsMut::{as_mut, set_len}` with `#[inline]`.
+- Relax synchronization when cloning in shared vtable of `Elems`.
 - Move `loom` to `dev-dependencies`.
 
 # 0.5.5 (June 18, 2020)
@@ -266,19 +266,19 @@ API polish in preparation for a 1.0 release.
 
 ### Fix
 - Fix `BufMut::advance_mut` to panic if advanced passed the capacity (#354)..
-- Fix `BytesMut::freeze` ignoring amount previously `advance`d (#352).
+- Fix `ElemsMut::freeze` ignoring amount previously `advance`d (#352).
 
 # 0.5.4 (January 23, 2020)
 
 ### Added
-- Make `Bytes::new` a `const fn`.
-- Add `From<BytesMut>` for `Bytes`.
+- Make `Elems::new` a `const fn`.
+- Add `From<ElemsMut>` for `Elems`.
 
 ### Fix
-- Fix reversed arguments in `PartialOrd` for `Bytes`.
-- Fix `Bytes::truncate` losing original capacity when repr is an unshared `Vec`.
-- Fix `Bytes::from(Vec)` when allocator gave `Vec` a pointer with LSB set.
-- Fix panic in `Bytes::slice_ref` if argument is an empty slice.
+- Fix reversed arguments in `PartialOrd` for `Elems`.
+- Fix `Elems::truncate` losing original capacity when repr is an unshared `Vec`.
+- Fix `Elems::from(Vec)` when allocator gave `Vec` a pointer with LSB set.
+- Fix panic in `Elems::slice_ref` if argument is an empty slice.
 
 # 0.5.3 (December 12, 2019)
 
@@ -286,8 +286,8 @@ API polish in preparation for a 1.0 release.
 - `must_use` attributes to `split`, `split_off`, and `split_to` methods (#337).
 
 ### Fix
-- Potential freeing of a null pointer in `Bytes` when constructed with an empty `Vec<u8>` (#341, #342).
-- Calling `Bytes::truncate` with a size large than the length will no longer clear the `Bytes` (#333).
+- Potential freeing of a null pointer in `Elems` when constructed with an empty `Vec<u8>` (#341, #342).
+- Calling `Elems::truncate` with a size large than the length will no longer clear the `Elems` (#333).
 
 # 0.5.2 (November 27, 2019)
 
@@ -297,7 +297,7 @@ API polish in preparation for a 1.0 release.
 # 0.5.1 (November 25, 2019)
 
 ### Fix
-- Growth documentation for `BytesMut` (#321)
+- Growth documentation for `ElemsMut` (#321)
 
 # 0.5.0 (November 25, 2019)
 
@@ -306,8 +306,8 @@ API polish in preparation for a 1.0 release.
 
 ### Changed
 - Increased minimum supported Rust version to 1.39.
-- `Bytes` is now a "trait object", allowing for custom allocation strategies (#298)
-- `BytesMut` implicitly grows internal storage. `remaining_mut()` returns
+- `Elems` is now a "trait object", allowing for custom allocation strategies (#298)
+- `ElemsMut` implicitly grows internal storage. `remaining_mut()` returns
   `usize::MAX` (#316).
 - `BufMut::bytes_mut` returns `&mut [MaybeUninit<u8>]` to reflect the unknown
   initialization state (#305).
@@ -315,14 +315,14 @@ API polish in preparation for a 1.0 release.
   respectively (#261).
 - Move `Buf` / `BufMut` "extra" functions to an extension trait (#306).
 - `BufMutExt::limit` (#309).
-- `Bytes::slice` takes a `RangeBounds` argument (#265).
-- `Bytes::from_static` is now a `const fn` (#311).
+- `Elems::slice` takes a `RangeBounds` argument (#265).
+- `Elems::from_static` is now a `const fn` (#311).
 - A multitude of smaller performance optimizations.
 
 ### Added
 - `no_std` support (#281).
 - `get_*`, `put_*`, `get_*_le`, and `put_*le` accessors for handling byte order.
-- `BorrowMut` implementation for `BytesMut` (#185).
+- `BorrowMut` implementation for `ElemsMut` (#185).
 
 ### Removed
 - `IntoBuf` (#288).
@@ -335,7 +335,7 @@ API polish in preparation for a 1.0 release.
 # 0.4.12 (March 6, 2019)
 
 ### Added
-- Implement `FromIterator<&'a u8>` for `BytesMut`/`Bytes` (#244).
+- Implement `FromIterator<&'a u8>` for `ElemsMut`/`Elems` (#244).
 - Implement `Buf` for `VecDeque` (#249).
 
 # 0.4.11 (November 17, 2018)
@@ -347,7 +347,7 @@ API polish in preparation for a 1.0 release.
 # 0.4.10 (September 4, 2018)
 
 * impl `Buf` and `BufMut` for `Either` (#225).
-* Add `Bytes::slice_ref` (#208).
+* Add `Elems::slice_ref` (#208).
 
 # 0.4.9 (July 12, 2018)
 
@@ -356,36 +356,36 @@ API polish in preparation for a 1.0 release.
 
 # 0.4.8 (May 25, 2018)
 
-* Fix panic in `BytesMut` `FromIterator` implementation.
-* Bytes: Recycle space when reserving space in vec mode (#197).
-* Bytes: Add resize fn (#203).
+* Fix panic in `ElemsMut` `FromIterator` implementation.
+* Elems: Recycle space when reserving space in vec mode (#197).
+* Elems: Add resize fn (#203).
 
 # 0.4.7 (April 27, 2018)
 
 * Make `Buf` and `BufMut` usable as trait objects (#186).
-* impl BorrowMut for BytesMut (#185).
+* impl BorrowMut for ElemsMut (#185).
 * Improve accessor performance (#195).
 
 # 0.4.6 (Janary 8, 2018)
 
-* Implement FromIterator for Bytes/BytesMut (#148).
-* Add `advance` fn to Bytes/BytesMut (#166).
-* Add `unsplit` fn to `BytesMut` (#162, #173).
-* Improvements to Bytes split fns (#92).
+* Implement FromIterator for Elems/ElemsMut (#148).
+* Add `advance` fn to Elems/ElemsMut (#166).
+* Add `unsplit` fn to `ElemsMut` (#162, #173).
+* Improvements to Elems split fns (#92).
 
 # 0.4.5 (August 12, 2017)
 
 * Fix range bug in `Take::bytes`
 * Misc performance improvements
 * Add extra `PartialEq` implementations.
-* Add `Bytes::with_capacity`
-* Implement `AsMut[u8]` for `BytesMut`
+* Add `Elems::with_capacity`
+* Implement `AsMut[u8]` for `ElemsMut`
 
 # 0.4.4 (May 26, 2017)
 
 * Add serde support behind feature flag
-* Add `extend_from_slice` on `Bytes` and `BytesMut`
-* Add `truncate` and `clear` on `Bytes`
+* Add `extend_from_slice` on `Elems` and `ElemsMut`
+* Add `truncate` and `clear` on `Elems`
 * Misc additional std trait implementations
 * Misc performance improvements
 
@@ -398,7 +398,7 @@ API polish in preparation for a 1.0 release.
 # 0.4.2 (April 5, 2017)
 
 * Misc performance tweaks
-* Improved `Debug` implementation for `Bytes`
+* Improved `Debug` implementation for `Elems`
 * Avoid some incorrect assert panics
 
 # 0.4.1 (March 15, 2017)
@@ -409,10 +409,10 @@ API polish in preparation for a 1.0 release.
 * Add iterator adapter for `Buf`.
 * Add scatter/gather support to `Buf` and `BufMut`.
 * Add `Buf::chain`.
-* Reduce allocations on repeated calls to `BytesMut::reserve`.
+* Reduce allocations on repeated calls to `ElemsMut::reserve`.
 * Implement `Debug` for more types.
 * Remove `Source` in favor of `IntoBuf`.
-* Implement `Extend` for `BytesMut`.
+* Implement `Extend` for `ElemsMut`.
 
 
 # 0.4.0 (February 24, 2017)

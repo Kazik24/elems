@@ -1,13 +1,13 @@
 #![warn(rust_2018_idioms)]
 
-use bytes::{Buf, BufMut, Bytes};
+use elems::{Buf, BufMut, Elems};
 #[cfg(feature = "std")]
 use std::io::IoSlice;
 
 #[test]
 fn collect_two_bufs() {
-    let a = Bytes::from(&b"hello"[..]);
-    let b = Bytes::from(&b"world"[..]);
+    let a = Elems::from(&b"hello"[..]);
+    let b = Elems::from(&b"world"[..]);
 
     let res = a.chain(b).copy_to_bytes(10);
     assert_eq!(res, &b"helloworld"[..]);
@@ -35,8 +35,8 @@ fn writing_chained() {
 
 #[test]
 fn iterating_two_bufs() {
-    let a = Bytes::from(&b"hello"[..]);
-    let b = Bytes::from(&b"world"[..]);
+    let a = Elems::from(&b"hello"[..]);
+    let b = Elems::from(&b"world"[..]);
 
     let res: Vec<u8> = a.chain(b).into_iter().collect();
     assert_eq!(res, &b"helloworld"[..]);
@@ -45,8 +45,8 @@ fn iterating_two_bufs() {
 #[cfg(feature = "std")]
 #[test]
 fn vectored_read() {
-    let a = Bytes::from(&b"hello"[..]);
-    let b = Bytes::from(&b"world"[..]);
+    let a = Elems::from(&b"hello"[..]);
+    let b = Elems::from(&b"world"[..]);
 
     let mut buf = a.chain(b);
 
@@ -157,8 +157,8 @@ fn chain_overflow_remaining_mut() {
 
 #[test]
 fn chain_get_bytes() {
-    let mut ab = Bytes::copy_from_slice(b"ab");
-    let mut cd = Bytes::copy_from_slice(b"cd");
+    let mut ab = Elems::copy_from_slice(b"ab");
+    let mut cd = Elems::copy_from_slice(b"cd");
     let ab_ptr = ab.as_ptr();
     let cd_ptr = cd.as_ptr();
     let mut chain = (&mut ab).chain(&mut cd);
@@ -166,9 +166,9 @@ fn chain_get_bytes() {
     let bc = chain.copy_to_bytes(2);
     let d = chain.copy_to_bytes(1);
 
-    assert_eq!(Bytes::copy_from_slice(b"a"), a);
-    assert_eq!(Bytes::copy_from_slice(b"bc"), bc);
-    assert_eq!(Bytes::copy_from_slice(b"d"), d);
+    assert_eq!(Elems::copy_from_slice(b"a"), a);
+    assert_eq!(Elems::copy_from_slice(b"bc"), bc);
+    assert_eq!(Elems::copy_from_slice(b"d"), d);
 
     // assert `get_bytes` did not allocate
     assert_eq!(ab_ptr, a.as_ptr());
